@@ -12,13 +12,13 @@ static const char *DIR_PATH = "/home/frain8/Documents/Sisop/temp";
 static const char *VIGENERE_KEY = "SISOP";
 
 /** Cipher Code **/
-char *AtBashEncode(const char *plaintext)
+char *atBashEncode(const char *plaintext)
 {
     // Receive plaintext (normal text) as input
     // Return  cyphertext (encrypted text) as output
 }
 
-char *AtBashDecode(const char *cyphertext)
+char *atBashDecode(const char *cyphertext)
 {
     // Receive cyphertext as input
     // Return  plaintext as output
@@ -36,13 +36,13 @@ char *ROT13Decode(const char *cyphertext)
     // Return  plaintext as output
 }
 
-char *VigenereEncode(const char *plaintext)
+char *vigenereEncode(const char *plaintext)
 {
     // Receive plaintext as input
     // Return  cyphertext as output
 }
 
-char *VigenereDecode(const char *cyphertext)
+char *vigenereDecode(const char *cyphertext)
 {
     // Receive cyphertext as input
     // Return  plaintext as output
@@ -53,6 +53,12 @@ char *VigenereDecode(const char *cyphertext)
 void Log(const char *dir_name, const char *awalan)
 {
     // Write something ...
+}
+
+char *getAwalan(const char *path)
+{
+    // Receive path as input (example: "AtoZ_folder/DATA_PEN.....")
+    // Return awalan (string before the first "_") as output (example: "AtoZ")
 }
 
 
