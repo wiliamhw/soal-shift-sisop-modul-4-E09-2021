@@ -13,37 +13,37 @@ static const char *LOG_PATH = "/home/frain8/SinSeiFS.log";
 static const char *VIGENERE_KEY = "SISOP";
 
 /** Cipher Code **/
-// char *atBashEncode(const char *plaintext)
+// void atBashEncode(const char *plaintext, char *return_val)
 // {
 //     // Receive plaintext (normal text) as input
 //     // Return  cyphertext (encrypted text) as output
 // }
 
-// char *atBashDecode(const char *cyphertext)
+// void atBashDecode(const char *cyphertext, char *return_val)
 // {
 //     // Receive cyphertext as input
 //     // Return  plaintext as output
 // }
 
-// char *ROT13Encode(const char *plaintext)
+// void ROT13Encode(const char *plaintext, char *return_val)
 // {
 //     // Receive plaintext as input
 //     // Return  cyphertext as output
 // }
 
-// char *ROT13Decode(const char *cyphertext)
+// void ROT13Decode(const char *cyphertext, char *return_val)
 // {
 //     // Receive cyphertext as input
 //     // Return  plaintext as output
 // }
 
-// char *vigenereEncode(const char *plaintext)
+// void vigenereEncode(const char *plaintext, char *return_val)
 // {
 //     // Receive plaintext as input
 //     // Return  cyphertext as output
 // }
 
-// char *vigenereDecode(const char *cyphertext)
+// void vigenereDecode(const char *cyphertext, har *return_val)
 // {
 //     // Receive cyphertext as input
 //     // Return  plaintext as output
@@ -88,11 +88,25 @@ void changePath(char *fpath, const char *path)
     } 
 }
 
-// char *getAwalan(const char *path)
-// {
-//     // Receive path as input (example: "AtoZ_folder/DATA_PEN.....")
-//     // Return awalan (string before the first "_") as output (example: "AtoZ")
-// }
+void getAwalan(const char *path, char *return_type)
+{
+    // Receive path as input (example: "AtoZ_folder/DATA_PEN.....")
+    // Return awalan (string before the first "_") as output (example: "AtoZ")
+    char type[3][9] = {"/AtoZ", "/RX", "/A_is_a_"};
+    char *awalan = NULL;
+
+    for (int i = 0; i < 3; i++) {
+        awalan = strstr(path, type[i]);
+
+        if (awalan != NULL) {
+            printf("WARNING::getAwalan: %s\n", type[i] + 1);
+            strcpy(return_type, type[i] + 1);
+            return;
+        }
+    }
+    printf("getAwalan: %s\n", path);
+    strcpy(return_type, "empty");
+}
 
 
 /** XMP Method **/
@@ -120,8 +134,8 @@ static int xmp_readdir(const char *path, void *buf, fuse_fill_dir_t filler, off_
     char fpath[1000];
     changePath(fpath, path);
     printf("Readdir: %s\n", fpath);
-    int res = 0;
 
+    int res = 0;
     DIR *dp;
     struct dirent *de;
     (void)offset;
