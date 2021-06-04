@@ -240,7 +240,7 @@ static int xmp_truncate(const char *path, off_t size)
 
 static int xmp_mkdir(const char *path, mode_t mode)
 {
-    Log("MAKEDIR", path, NULL);
+    Log("MKDIR", path, NULL);
 
 	int res;
     char fpath[1000];
