@@ -9,45 +9,45 @@
 #include <sys/time.h>
 
 static const char *DIR_PATH = "/home/frain8/Documents/Sisop/temp";
-static const char *LOG_PATH = "/home/frain8/Documents/Sisop/Modul_4/soal_shift_4";
+static const char *LOG_PATH = "/home/frain8/SinSeiFS.log";
 static const char *VIGENERE_KEY = "SISOP";
 
 /** Cipher Code **/
-char *atBashEncode(const char *plaintext)
-{
-    // Receive plaintext (normal text) as input
-    // Return  cyphertext (encrypted text) as output
-}
+// char *atBashEncode(const char *plaintext)
+// {
+//     // Receive plaintext (normal text) as input
+//     // Return  cyphertext (encrypted text) as output
+// }
 
-char *atBashDecode(const char *cyphertext)
-{
-    // Receive cyphertext as input
-    // Return  plaintext as output
-}
+// char *atBashDecode(const char *cyphertext)
+// {
+//     // Receive cyphertext as input
+//     // Return  plaintext as output
+// }
 
-char *ROT13Encode(const char *plaintext)
-{
-    // Receive plaintext as input
-    // Return  cyphertext as output
-}
+// char *ROT13Encode(const char *plaintext)
+// {
+//     // Receive plaintext as input
+//     // Return  cyphertext as output
+// }
 
-char *ROT13Decode(const char *cyphertext)
-{
-    // Receive cyphertext as input
-    // Return  plaintext as output
-}
+// char *ROT13Decode(const char *cyphertext)
+// {
+//     // Receive cyphertext as input
+//     // Return  plaintext as output
+// }
 
-char *vigenereEncode(const char *plaintext)
-{
-    // Receive plaintext as input
-    // Return  cyphertext as output
-}
+// char *vigenereEncode(const char *plaintext)
+// {
+//     // Receive plaintext as input
+//     // Return  cyphertext as output
+// }
 
-char *vigenereDecode(const char *cyphertext)
-{
-    // Receive cyphertext as input
-    // Return  plaintext as output
-}
+// char *vigenereDecode(const char *cyphertext)
+// {
+//     // Receive cyphertext as input
+//     // Return  plaintext as output
+// }
 
 
 /** Helpers **/
@@ -67,40 +67,35 @@ void Log(const char *cmd, const char *desc, const char *desc2)
     sprintf(date, "%02d%02d%04d", tm.tm_mday, tm.tm_mon, tm.tm_year + 1900);
 
     char output[1000];
-    sprintf(output, "%s::%s-%s:%s::/%s", level, date, time, cmd, desc);
+    sprintf(output, "%s::%s-%s:%s::%s", level, date, time, cmd, desc);
 
     // Add desc2 if exist
     if (desc2 != NULL) {
-        strcat(output, "::/");
+        strcat(output, "::");
         strcat(output, desc2);
     }
 
-    FILE *F_out = fopen("SinSeiFS.log", "a+");
+    FILE *F_out = fopen(LOG_PATH, "a+");
     fprintf(F_out, "%s\n", output);
     fclose(F_out);
 }
 
-char *getAwalan(const char *path)
-{
-    // Receive path as input (example: "AtoZ_folder/DATA_PEN.....")
-    // Return awalan (string before the first "_") as output (example: "AtoZ")
-}
+// char *getAwalan(const char *path)
+// {
+//     // Receive path as input (example: "AtoZ_folder/DATA_PEN.....")
+//     // Return awalan (string before the first "_") as output (example: "AtoZ")
+// }
 
 
 /** XMP Method **/
 static int xmp_getattr(const char *path, struct stat *stbuf)
 {
-    // Log("GETATTR", path, NULL);
+    Log("GETATTR", path, NULL);
+
     int res;
     char fpath[1000];
 
-    if (strcmp(path, "/") == 0) {
-        path = DIR_PATH;
-        sprintf(fpath, "%s", path);
-    }
-    else {
-        sprintf(fpath, "%s%s", DIR_PATH, path);
-    } 
+    sprintf(fpath, "%s%s", DIR_PATH, path);
     printf("Getattr: %s\n", fpath);
 
     res = lstat(fpath, stbuf);
@@ -113,7 +108,7 @@ static int xmp_getattr(const char *path, struct stat *stbuf)
 
 static int xmp_readdir(const char *path, void *buf, fuse_fill_dir_t filler, off_t offset, struct fuse_file_info *fi)
 {
-    // Log("READDIR", path, NULL);
+    Log("READDIR", path, NULL);
 
     char fpath[1000];
     if (strcmp(path, "/") == 0) {
@@ -138,10 +133,6 @@ static int xmp_readdir(const char *path, void *buf, fuse_fill_dir_t filler, off_
         return -errno;
 
     while ((de = readdir(dp)) != NULL) {
-        if (strcmp(de->d_name, ".") == 0 || strcmp(de->d_name, "..")) {
-            continue;
-        }
-
         struct stat st;
         memset(&st, 0, sizeof(st));
 
@@ -160,7 +151,7 @@ static int xmp_readdir(const char *path, void *buf, fuse_fill_dir_t filler, off_
 
 static int xmp_read(const char *path, char *buf, size_t size, off_t offset, struct fuse_file_info *fi)
 {
-    // Log("READ", path, NULL);
+    Log("READ", path, NULL);
 
     char fpath[1000];
     if (strcmp(path, "/") == 0) {
@@ -194,7 +185,7 @@ static int xmp_read(const char *path, char *buf, size_t size, off_t offset, stru
 
 static int xmp_write(const char *path, const char *buf, size_t size, off_t offset, struct fuse_file_info *fi)
 {
-    // Log("WRITE", path, NULL);
+    Log("WRITE", path, NULL);
 
     char fpath[1000];
     if (strcmp(path, "/") == 0) {
@@ -225,7 +216,7 @@ static int xmp_write(const char *path, const char *buf, size_t size, off_t offse
 
 static int xmp_truncate(const char *path, off_t size)
 {
-    // Log("TRUNCATE", path, NULL);
+    Log("TRUNCATE", path, NULL);
 
 	printf("Trunc: %s\n", path);
     char fpath[1000];
@@ -249,7 +240,7 @@ static int xmp_truncate(const char *path, off_t size)
 
 static int xmp_mkdir(const char *path, mode_t mode)
 {
-    // Log("MAKEDIR", path, NULL);
+    Log("MAKEDIR", path, NULL);
 
 	int res;
     char fpath[1000];
@@ -271,7 +262,7 @@ static int xmp_mkdir(const char *path, mode_t mode)
 
 static int xmp_unlink(const char *path)
 {
-    // Log("UNLINK", path, NULL);
+    Log("UNLINK", path, NULL);
 
 	int res;
     char fpath[1000];
@@ -291,6 +282,36 @@ static int xmp_unlink(const char *path)
 	return 0;
 }
 
+static int xmp_rename(const char *from, const char *to)
+{
+    Log("RENAME", from, to);
+
+	int res;
+    char _from[1000], _to[1000];
+    if (strcmp(_from, "/") == 0) {
+        from = DIR_PATH;
+        sprintf(_from, "%s", from);
+    }
+    else {
+        sprintf(_from, "%s%s", DIR_PATH, from);
+    }
+    if (strcmp(_to, "/") == 0) {
+        from = DIR_PATH;
+        sprintf(_to, "%s", to);
+    }
+    else {
+        sprintf(_to, "%s%s", DIR_PATH, to);
+    }
+
+    printf("Rename path: %s --> %s\n", _from, _to);
+
+	res = rename(_from, _to);
+	if (res == -1)
+		return -errno;
+
+	return 0;
+}
+
 static struct fuse_operations xmp_oper = {
     .getattr = xmp_getattr,
     .readdir = xmp_readdir,
@@ -298,7 +319,8 @@ static struct fuse_operations xmp_oper = {
     .write = xmp_write,
     .truncate = xmp_truncate,
     .mkdir = xmp_mkdir,
-    .unlink = xmp_unlink
+    .unlink = xmp_unlink,
+    .rename = xmp_rename
 };
 
 int main(int argc, char *argv[])
