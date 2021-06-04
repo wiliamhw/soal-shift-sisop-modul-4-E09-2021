@@ -40,3 +40,38 @@
    * Jika `CMD` sama dengan `mkdir` atau `unlink`, `level = "WARNING"`.
    * Selain itu, `level = "INFO"`.
 5. Jalankan fungsi `Log()` pada semua fungsi fuse.
+
+Implementasi dari langkah-langkah di atas adalah sebagai berikut:
+```
+void Log(const char *cmd, const char *desc, const char *desc2)
+{
+    char *level = (strcmp(cmd, "MKDIR") == 0 
+                || strcmp(cmd, "UNLINK") == 0) 
+                    ? "WARNING"
+                    : "INFO";
+    
+    // Write to log file
+    time_t t = time(NULL);
+    struct tm tm = *localtime(&t);
+
+    char time[50], date[50];
+    sprintf(time, "%02d:%02d:%02d", tm.tm_hour, tm.tm_min, tm.tm_sec);
+    sprintf(date, "%02d%02d%04d", tm.tm_mday, tm.tm_mon, tm.tm_year + 1900);
+
+    char output[1000];
+    sprintf(output, "%s::%s-%s:%s::%s", level, date, time, cmd, desc);
+
+    // Add desc2 if exist
+    if (desc2 != NULL) {
+        strcat(output, "::");
+        strcat(output, desc2);
+    }
+
+    FILE *F_out = fopen(LOG_PATH, "a+");
+    fprintf(F_out, "%s\n", output);
+    fclose(F_out);
+}
+```
+
+# Kendala
+* Fungsi static tidak bisa menerima return value dari fungsi non-static. Kami pun memutuskan untuk mengirim data dari fungsi static ke fungsi non-static menggunakan argumen fungsi yang berupa pointer.
