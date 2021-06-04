@@ -80,6 +80,14 @@ void Log(const char *cmd, const char *desc, const char *desc2)
     fclose(F_out);
 }
 
+void changePath(char *fpath, const char *path)
+{
+    sprintf(fpath, "%s", DIR_PATH);
+    if (strcmp(path, "/") != 0) {
+        strcat(fpath, path);
+    } 
+}
+
 // char *getAwalan(const char *path)
 // {
 //     // Receive path as input (example: "AtoZ_folder/DATA_PEN.....")
@@ -94,7 +102,6 @@ static int xmp_getattr(const char *path, struct stat *stbuf)
 
     int res;
     char fpath[1000];
-
     sprintf(fpath, "%s%s", DIR_PATH, path);
     printf("Getattr: %s\n", fpath);
 
@@ -111,14 +118,7 @@ static int xmp_readdir(const char *path, void *buf, fuse_fill_dir_t filler, off_
     Log("READDIR", path, NULL);
 
     char fpath[1000];
-    if (strcmp(path, "/") == 0) {
-        path = DIR_PATH;
-        sprintf(fpath, "%s", path);
-    }
-    else {
-        sprintf(fpath, "%s%s", DIR_PATH, path);
-    } 
-
+    changePath(fpath, path);
     printf("Readdir: %s\n", fpath);
     int res = 0;
 
@@ -154,14 +154,7 @@ static int xmp_read(const char *path, char *buf, size_t size, off_t offset, stru
     Log("READ", path, NULL);
 
     char fpath[1000];
-    if (strcmp(path, "/") == 0) {
-        path = DIR_PATH;
-
-        sprintf(fpath, "%s", path);
-    }
-    else
-        sprintf(fpath, "%s%s", DIR_PATH, path);
-
+    changePath(fpath, path);
     printf("Read: %s\n", fpath);
     int res = 0;
     int fd = 0;
@@ -188,14 +181,9 @@ static int xmp_write(const char *path, const char *buf, size_t size, off_t offse
     Log("WRITE", path, NULL);
 
     char fpath[1000];
-    if (strcmp(path, "/") == 0) {
-        path = DIR_PATH;
-        sprintf(fpath, "%s", path);
-    }
-    else
-        sprintf(fpath, "%s%s", DIR_PATH, path);
-
+    changePath(fpath, path);
     printf("Write: %s\n", fpath);
+
     int res = 0;
     int fd = 0;
     (void)fi;
@@ -220,13 +208,7 @@ static int xmp_truncate(const char *path, off_t size)
 
 	printf("Trunc: %s\n", path);
     char fpath[1000];
-    if (strcmp(path, "/") == 0) {
-        path = DIR_PATH;
-        sprintf(fpath, "%s", path);
-    }
-    else
-        sprintf(fpath, "%s%s", DIR_PATH, path);
-
+    changePath(fpath, path);
     printf("Trunc path: %s\n", fpath);
 	
 	int res;
@@ -244,13 +226,7 @@ static int xmp_mkdir(const char *path, mode_t mode)
 
 	int res;
     char fpath[1000];
-    if (strcmp(path, "/") == 0) {
-        path = DIR_PATH;
-        sprintf(fpath, "%s", path);
-    }
-    else {
-        sprintf(fpath, "%s%s", DIR_PATH, path);
-    }
+    changePath(fpath, path);
     printf("Mkdir path: %s\n", fpath);
 
 	res = mkdir(fpath, mode);
@@ -266,13 +242,7 @@ static int xmp_unlink(const char *path)
 
 	int res;
     char fpath[1000];
-    if (strcmp(path, "/") == 0) {
-        path = DIR_PATH;
-        sprintf(fpath, "%s", path);
-    }
-    else {
-        sprintf(fpath, "%s%s", DIR_PATH, path);
-    }
+    changePath(fpath, path);
     printf("Unlink path: %s\n", fpath);
 
 	res = unlink(path);
@@ -288,21 +258,8 @@ static int xmp_rename(const char *from, const char *to)
 
 	int res;
     char _from[1000], _to[1000];
-    if (strcmp(_from, "/") == 0) {
-        from = DIR_PATH;
-        sprintf(_from, "%s", from);
-    }
-    else {
-        sprintf(_from, "%s%s", DIR_PATH, from);
-    }
-    if (strcmp(_to, "/") == 0) {
-        from = DIR_PATH;
-        sprintf(_to, "%s", to);
-    }
-    else {
-        sprintf(_to, "%s%s", DIR_PATH, to);
-    }
-
+    changePath(_from, from);
+    changePath(_to, to);
     printf("Rename path: %s --> %s\n", _from, _to);
 
 	res = rename(_from, _to);
