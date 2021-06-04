@@ -9,6 +9,7 @@
 #include <sys/time.h>
 
 static const char *DIR_PATH = "/home/frain8/Documents/Sisop/temp";
+static const char *LOG_PATH = "/home/frain8/Documents/Sisop/Modul_4/soal_shift_4";
 static const char *VIGENERE_KEY = "SISOP";
 
 /** Cipher Code **/
@@ -50,9 +51,33 @@ char *vigenereDecode(const char *cyphertext)
 
 
 /** Helpers **/
-void Log(const char *dir_name, const char *awalan)
+void Log(const char *cmd, const char *desc, const char *desc2)
 {
-    // Write something ...
+    char *level = (strcmp(cmd, "MKDIR") == 0 
+                || strcmp(cmd, "UNLINK") == 0) 
+                    ? "WARNING"
+                    : "INFO";
+    
+    // Write to log file
+    time_t t = time(NULL);
+    struct tm tm = *localtime(&t);
+
+    char time[50], date[50];
+    sprintf(time, "%02d:%02d:%02d", tm.tm_hour, tm.tm_min, tm.tm_sec);
+    sprintf(date, "%02d%02d%04d", tm.tm_mday, tm.tm_mon, tm.tm_year + 1900);
+
+    char output[1000];
+    sprintf(output, "%s::%s-%s:%s::/%s", level, date, time, cmd, desc);
+
+    // Add desc2 if exist
+    if (desc2 != NULL) {
+        strcat(output, "::/");
+        strcat(output, desc2);
+    }
+
+    FILE *F_out = fopen("SinSeiFS.log", "a+");
+    fprintf(F_out, "%s\n", output);
+    fclose(F_out);
 }
 
 char *getAwalan(const char *path)
@@ -65,10 +90,17 @@ char *getAwalan(const char *path)
 /** XMP Method **/
 static int xmp_getattr(const char *path, struct stat *stbuf)
 {
+    // Log("GETATTR", path, NULL);
     int res;
     char fpath[1000];
 
-    sprintf(fpath, "%s%s", DIR_PATH, path);
+    if (strcmp(path, "/") == 0) {
+        path = DIR_PATH;
+        sprintf(fpath, "%s", path);
+    }
+    else {
+        sprintf(fpath, "%s%s", DIR_PATH, path);
+    } 
     printf("Getattr: %s\n", fpath);
 
     res = lstat(fpath, stbuf);
@@ -81,14 +113,16 @@ static int xmp_getattr(const char *path, struct stat *stbuf)
 
 static int xmp_readdir(const char *path, void *buf, fuse_fill_dir_t filler, off_t offset, struct fuse_file_info *fi)
 {
-    char fpath[1000];
+    // Log("READDIR", path, NULL);
 
+    char fpath[1000];
     if (strcmp(path, "/") == 0) {
         path = DIR_PATH;
         sprintf(fpath, "%s", path);
     }
-    else
+    else {
         sprintf(fpath, "%s%s", DIR_PATH, path);
+    } 
 
     printf("Readdir: %s\n", fpath);
     int res = 0;
@@ -104,8 +138,11 @@ static int xmp_readdir(const char *path, void *buf, fuse_fill_dir_t filler, off_
         return -errno;
 
     while ((de = readdir(dp)) != NULL) {
-        struct stat st;
+        if (strcmp(de->d_name, ".") == 0 || strcmp(de->d_name, "..")) {
+            continue;
+        }
 
+        struct stat st;
         memset(&st, 0, sizeof(st));
 
         st.st_ino = de->d_ino;
@@ -123,6 +160,8 @@ static int xmp_readdir(const char *path, void *buf, fuse_fill_dir_t filler, off_
 
 static int xmp_read(const char *path, char *buf, size_t size, off_t offset, struct fuse_file_info *fi)
 {
+    // Log("READ", path, NULL);
+
     char fpath[1000];
     if (strcmp(path, "/") == 0) {
         path = DIR_PATH;
@@ -155,6 +194,8 @@ static int xmp_read(const char *path, char *buf, size_t size, off_t offset, stru
 
 static int xmp_write(const char *path, const char *buf, size_t size, off_t offset, struct fuse_file_info *fi)
 {
+    // Log("WRITE", path, NULL);
+
     char fpath[1000];
     if (strcmp(path, "/") == 0) {
         path = DIR_PATH;
@@ -184,6 +225,8 @@ static int xmp_write(const char *path, const char *buf, size_t size, off_t offse
 
 static int xmp_truncate(const char *path, off_t size)
 {
+    // Log("TRUNCATE", path, NULL);
+
 	printf("Trunc: %s\n", path);
     char fpath[1000];
     if (strcmp(path, "/") == 0) {
@@ -204,12 +247,58 @@ static int xmp_truncate(const char *path, off_t size)
 	return 0;
 }
 
+static int xmp_mkdir(const char *path, mode_t mode)
+{
+    // Log("MAKEDIR", path, NULL);
+
+	int res;
+    char fpath[1000];
+    if (strcmp(path, "/") == 0) {
+        path = DIR_PATH;
+        sprintf(fpath, "%s", path);
+    }
+    else {
+        sprintf(fpath, "%s%s", DIR_PATH, path);
+    }
+    printf("Mkdir path: %s\n", fpath);
+
+	res = mkdir(fpath, mode);
+	if (res == -1)
+		return -errno;
+
+	return 0;
+}
+
+static int xmp_unlink(const char *path)
+{
+    // Log("UNLINK", path, NULL);
+
+	int res;
+    char fpath[1000];
+    if (strcmp(path, "/") == 0) {
+        path = DIR_PATH;
+        sprintf(fpath, "%s", path);
+    }
+    else {
+        sprintf(fpath, "%s%s", DIR_PATH, path);
+    }
+    printf("Unlink path: %s\n", fpath);
+
+	res = unlink(path);
+	if (res == -1)
+		return -errno;
+
+	return 0;
+}
+
 static struct fuse_operations xmp_oper = {
     .getattr = xmp_getattr,
     .readdir = xmp_readdir,
     .read = xmp_read,
     .write = xmp_write,
     .truncate = xmp_truncate,
+    .mkdir = xmp_mkdir,
+    .unlink = xmp_unlink
 };
 
 int main(int argc, char *argv[])
