@@ -10,9 +10,10 @@
 #include <sys/time.h>
 #include <ctype.h>
 
-static const char *DIR_PATH = "/home/frain8/Documents/Sisop/temp";
-static const char *LOG_PATH = "/home/frain8/SinSeiFS.log";
-static const char *VIGENERE_KEY = "SISOP";
+static const char *DIR_PATH = "/home/frain8/Downloads";
+static const char *LOG_PATH = "/home/frain8/Downloads/SISOP.log";
+static const char *SYS_LOG_PATH = "/home/frain8/SinSeiFS.log";
+// static const char *VIGENERE_KEY = "SISOP";
 
 /** Cipher Code **/
 // Encryption and Decryption atbash function
@@ -77,7 +78,14 @@ void atBash(char *input)
 
 
 /** Helpers **/
-void Log(const char *cmd, const char *desc, const char *desc2)
+void Log(const char *origin_path, const char *atoz_path)
+{
+    FILE *F_out = fopen(LOG_PATH, "a+");
+    fprintf(F_out, "%s -> %s\n", origin_path, atoz_path);
+    fclose(F_out);
+}
+
+void sysLog(const char *cmd, const char *desc, const char *desc2)
 {
     char *level = (strcmp(cmd, "MKDIR") == 0 
                 || strcmp(cmd, "UNLINK") == 0) 
@@ -101,7 +109,7 @@ void Log(const char *cmd, const char *desc, const char *desc2)
         strcat(output, desc2);
     }
 
-    FILE *F_out = fopen(LOG_PATH, "a+");
+    FILE *F_out = fopen(SYS_LOG_PATH, "a+");
     fprintf(F_out, "%s\n", output);
     fclose(F_out);
 }
@@ -147,7 +155,7 @@ void cipherTerminal(char **c_path, char *awalan)
 /** XMP Method **/
 static int xmp_getattr(const char *path, struct stat *stbuf)
 {
-    Log("GETATTR", path, NULL);
+    sysLog("GETATTR", path, NULL);
 
     int res;
     char *c_path = NULL;
@@ -168,7 +176,7 @@ static int xmp_getattr(const char *path, struct stat *stbuf)
 
 static int xmp_readdir(const char *path, void *buf, fuse_fill_dir_t filler, off_t offset, struct fuse_file_info *fi)
 {
-    Log("READDIR", path, NULL);
+    sysLog("READDIR", path, NULL);
 
     char *c_path = NULL;
     char fpath[1000], awalan[9];
@@ -198,7 +206,7 @@ static int xmp_readdir(const char *path, void *buf, fuse_fill_dir_t filler, off_
 
         // Encode filename
         if (strcmp(de->d_name, ".") != 0 && strcmp(de->d_name, "..") != 0) {
-            if (c_path != NULL) {
+            if (c_path != NULL && strcmp(awalan, "AtoZ") == 0) {
                 atBash(de->d_name);
             }
         }
@@ -216,7 +224,7 @@ static int xmp_readdir(const char *path, void *buf, fuse_fill_dir_t filler, off_
 
 static int xmp_read(const char *path, char *buf, size_t size, off_t offset, struct fuse_file_info *fi)
 {
-    Log("READ", path, NULL);
+    sysLog("READ", path, NULL);
 
     char *c_path = NULL;
     char fpath[1000], awalan[9];
@@ -246,7 +254,7 @@ static int xmp_read(const char *path, char *buf, size_t size, off_t offset, stru
 
 static int xmp_write(const char *path, const char *buf, size_t size, off_t offset, struct fuse_file_info *fi)
 {
-    Log("WRITE", path, NULL);
+    sysLog("WRITE", path, NULL);
 
     char *c_path = NULL;
     char fpath[1000], awalan[9];
@@ -275,7 +283,7 @@ static int xmp_write(const char *path, const char *buf, size_t size, off_t offse
 
 static int xmp_truncate(const char *path, off_t size)
 {
-    Log("TRUNCATE", path, NULL);
+    sysLog("TRUNCATE", path, NULL);
 
     char *c_path = NULL;
     char fpath[1000], awalan[9];
@@ -297,7 +305,7 @@ static int xmp_truncate(const char *path, off_t size)
 
 static int xmp_mkdir(const char *path, mode_t mode)
 {
-    Log("MKDIR", path, NULL);
+    sysLog("MKDIR", path, NULL);
 
 	char *c_path = NULL;
     char fpath[1000], awalan[9];
@@ -311,6 +319,16 @@ static int xmp_mkdir(const char *path, mode_t mode)
 	res = mkdir(fpath, mode);
     cipherTerminal(&c_path, awalan);
 
+    char *folder_name = strrchr(fpath, '/');
+    printf("INFO::MKDIR: %s\n", folder_name);
+    if (strstr(folder_name, "/AtoZ_") != NULL) {
+        char origin_path[1000];
+        strcpy(origin_path, fpath);
+        origin_path[strlen(origin_path) - strlen(folder_name)] = '\0';
+        Log(origin_path, fpath);
+    }
+
+
 	if (res == -1)
 		return -errno;
 
@@ -319,7 +337,7 @@ static int xmp_mkdir(const char *path, mode_t mode)
 
 static int xmp_unlink(const char *path)
 {
-    Log("UNLINK", path, NULL);
+    sysLog("UNLINK", path, NULL);
 
 	char *c_path = NULL;
     char fpath[1000], awalan[9];
@@ -340,24 +358,30 @@ static int xmp_unlink(const char *path)
 
 static int xmp_rename(const char *from, const char *to)
 {
-    Log("RENAME", from, to);
+    sysLog("RENAME", from, to);
 
-    char *from_c_path = NULL;
-    char *to_c_path = NULL;
-    char from_fpath[1000], from_awalan[9];
-    char to_fpath[1000], to_awalan[9];
+    char *fc_path = NULL;
+    char *tc_path = NULL;
+    char f_fpath[1000], f_awalan[9];
+    char t_fpath[1000], t_awalan[9];
 	int res;
 
-    getAwalan(from, &from_c_path, from_awalan);
-    cipherTerminal(&from_c_path, from_awalan);
-    changePath(from_fpath, from);
+    getAwalan(from, &fc_path, f_awalan);
+    cipherTerminal(&fc_path, f_awalan);
+    changePath(f_fpath, from);
 
-    getAwalan(to, &to_c_path, to_awalan);
-    cipherTerminal(&to_c_path, to_awalan);
-    changePath(to_fpath, to);
-    printf("WARNING::Rename path: %s --> %s\n", from_fpath, to_fpath);
+    getAwalan(to, &tc_path, t_awalan);
+    cipherTerminal(&tc_path, t_awalan);
+    changePath(t_fpath, to);
+    printf("WARNING::Rename path: %s --> %s\n", f_fpath, t_fpath);
 
-	res = rename(from_fpath, to_fpath);
+	res = rename(f_fpath, t_fpath);
+
+    char *new_name = strrchr(t_fpath, '/');
+    printf("INFO::To path: %s\n", new_name);
+    if (strstr(new_name, "/AtoZ_") != NULL) {
+        Log(f_fpath, t_fpath);
+    }
 
 	if (res == -1)
 		return -errno;
