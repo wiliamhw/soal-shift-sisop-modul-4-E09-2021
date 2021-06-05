@@ -8,72 +8,75 @@
 #include <dirent.h>
 #include <errno.h>
 #include <sys/time.h>
+#include <ctype.h>
 
 static const char *DIR_PATH = "/home/frain8/Documents/Sisop/temp";
 static const char *LOG_PATH = "/home/frain8/SinSeiFS.log";
 static const char *VIGENERE_KEY = "SISOP";
 
 /** Cipher Code **/
-// Creating a array of upper case alphabets
-char upper_case[]={'Z', 'Y', 'X', 'W', 'V', 'U',
- 				   'T', 'S', 'R', 'Q', 'P', 'O',
-				   'N', 'M', 'L', 'K', 'J', 'I', 
-				   'H', 'G', 'F', 'E', 'D', 'C', 'B', 'A'};
-
-// Creating a array of lower case alphabets				   
-char lower_case[]={'z', 'y', 'x', 'w', 'v', 'u',
-  					't', 's', 'r', 'q', 'p', 'o',
-					'n', 'm', 'l', 'k', 'j', 'i',
-					'h', 'g', 'f', 'e', 'd', 'c', 'b', 'a'};
-
 // Encryption and Decryption atbash function
-void atBash(char *text)
+void atBash(char input[])
 {
-    int len = plaintext.size();
-    int ascii_char;
-    for (int i=0; i<len; i++) {
-        ascii_char = plaintext[i];
-        if (ascii_char >= 'A' && ascii_char <= 'Z') {
-            return_val = return_val + upper_case[ascii_char - 65];
+    char *text = strstr(input, "/AtoZ_");
+    if (text) {
+        text += strlen("/AtoZ_");
+        while (text[0] != '/') {
+            text++;
         }
-        else {
-            return_val = return_val + lower_case[ascii_char - 97];
-        }
+    } else {
+        text = &input[0];
     }
+
+    printf("In cipher: %s\n", text);
+    int i = 0;
+    while (text[i] != '\0') {
+        if (isalpha(text[i])) {
+            if (isupper(text[i])) {
+                text[i] = 'Z' + 'A' - text[i];
+            } else {
+                text[i] = 'z' + 'a' - text[i];
+            }
+        } else if (text[i] == '.') {
+            break;
+        }
+        i++;
+    }
+    printf("Out cipher: %s\n", text);
 }
 
 // Encryption and Decryption ROT13 function
-void ROT13(const char *plaintext, char *return_val)
-{
-    int len = plaintext.size();
-    int ascii_char;
-    for (int i=0; i<len; i++) {
-        ascii_char = plaintext[i];
-        if ((ascii_char >= 97 && ascii_char <= 122) || (ascii_char >= 65 && ascii_char <= 90)) {
-            if (ascii_char > 109 || (ascii_char > 77 && ascii_char < 91)) {
-                ascii_char -= 13;
-                return_val = return_val + ascii_char;
-            }
-            else {
-                ascii_char += 13;
-                return_val = return_val + ascii_char;
-            }
-        }
-    }
-}
+// void ROT13(const char *plaintext, char *return_val)
+// {
+//     int len = plaintext.size();
+//     int ascii_char;
+//     for (int i=0; i<len; i++) {
+//         ascii_char = plaintext[i];
+//         if ((ascii_char >= 97 && ascii_char <= 122) || (ascii_char >= 65 && ascii_char <= 90)) {
+//             if (ascii_char > 109 || (ascii_char > 77 && ascii_char < 91)) {
+//                 ascii_char -= 13;
+//                 return_val = return_val + ascii_char;
+//             }
+//             else {
+//                 ascii_char += 13;
+//                 return_val = return_val + ascii_char;
+//             }
+//         }
+//     }
+// }
 
-void vigenereEncode(char *text)
-{
-    text[0] += 1;
-}
+// void vigenereEncode(char *text)
+// {
+//     text[0] += 1;
+// }
 
-void vigenereDecode(const char *cyphertext, char *return_val)
-{
-    // Receive cyphertext as input
-    // Return  plaintext as output
-    strcpy(return_val, cyphertext);
-    return_val[0] -= 1;
-}
+// void vigenereDecode(const char *cyphertext, char *return_val)
+// {
+//     // Receive cyphertext as input
+//     // Return  plaintext as output
+//     strcpy(return_val, cyphertext);
+//     return_val[0] -= 1;
+// }
 
 
 /** Helpers **/
@@ -125,22 +128,17 @@ void getAwalan(const char *path, char *return_str, char *return_type)
         awalan = strstr(path, type[i]);
 
         if (awalan != NULL) {
-            // printf("WARNING::getAwalan: %s\n", type[i] + 1);
+            printf("getAwalan: %s\n", type[i] + 1);
             strcpy(return_str, awalan);
-            type[i][strlen(type[i]) - 1] = '0';
+
+            type[i][strlen(type[i]) - 1] = '\0';
             strcpy(return_type, type[i] + 1);
             return;
         }
     }
-    // printf("getAwalan: %s\n", path);
+    printf("getAwalan: %s\n", path);
+    strcpy(return_str, path);
     strcpy(return_type, "empty");
-}
-
-void getFileName(char *filePath, char *return_filename)
-{
-    char *ret = strrchr(filePath, '/');
-    if (ret) strcpy(return_filename, ret);
-    else strcpy(return_filename, filePath);
 }
 
 /** XMP Method **/
@@ -149,9 +147,13 @@ static int xmp_getattr(const char *path, struct stat *stbuf)
     Log("GETATTR", path, NULL);
 
     int res;
-    char fpath[1000];
+    char fpath[1000], c_path[1000], awalan[9];
+    getAwalan(path, c_path, awalan);
+    if (strcmp(awalan, "AtoZ") == 0) {
+        atBash(c_path);
+    }
     sprintf(fpath, "%s%s", DIR_PATH, path);
-    printf("Getattr: %s\n", fpath);
+    printf("WARNING::Getattr: %s\n", fpath);
 
     res = lstat(fpath, stbuf);
 
@@ -165,16 +167,13 @@ static int xmp_readdir(const char *path, void *buf, fuse_fill_dir_t filler, off_
 {
     Log("READDIR", path, NULL);
 
-    char fpath[1000], c_path[1000], c_name[1000], type[1000], temp[1000], parent_folder = NULL;
-    bool toAtoZ = false;
-
-    sprintf(fpath, "%s", DIR_PATH);
-    if (strcmp(path, "/") != 0) {
-        getAwalan(path, c_path, type);
-        vigenereEncode(c_path);
-        strcat(fpath, path);
-    } 
-    printf("Readdir: %s\n", fpath);
+    char fpath[1000], c_path[1000], awalan[9];
+    getAwalan(path, c_path, awalan);
+    if (strcmp(awalan, "AtoZ") == 0) {
+        atBash(c_path);
+    }
+    changePath(fpath, path);
+    printf("WARNING::Readdir: %s\n", fpath);
 
     int res = 0;
     DIR *dp;
@@ -196,9 +195,8 @@ static int xmp_readdir(const char *path, void *buf, fuse_fill_dir_t filler, off_
 
         // Encode filename
         if (strcmp(de->d_name, ".") != 0 && strcmp(de->d_name, "..") != 0) {
-            if (strcmp(type, "AtoZ") != 0) {
-                strcpy(temp, de->d_name);
-                atBash(temp, de->d_name);
+            if (strcmp(awalan, "AtoZ") == 0) {
+                atBash(de->d_name);
             }
         }
 
