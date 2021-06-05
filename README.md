@@ -17,15 +17,18 @@
 * Lakukan langkah dibawah ini pada fungsi `readdir`.
 1. Dapatkan path dari suatu folder relatif terhadap root pada FUSE.
 2. Jika path saat ini bukan root path, lakukan langkah dibawah ini.
-3. Jika predecessor dari folder saat ini diawali dengan `AtoZ_`, decode path folder tersebut.
-4. Dapatkan full path dari folder.
-5. Buka folder dengan full path.
-6. Jika di dalam path terdapat folder yang diawali dengan `AtoZ_`, isi `filler()` dengan **nama file/folder yang terencode** untuk setiap file/folder didalam folder yang dibuka.
+3. Parse path untuk mendapatkan awalan dan pointer untuk path setelah folder awalan tanpa menghapus atau mengubah path yg akan diparse.
+4. Jika `awalan = AtoZ` `pointer untuk path setelah folder awalan != NULL`, decode path setelah folder awalan dengan pointer yang didapat pada no.3 menggunakan enkripsi `atBash`.
+5. Dapatkan full path dari folder.
+   * `full path = DIR_PATH + path`
+6. Buka folder berdasarkan full path.
+7. Jika `awalan = AtoZ`, isi `filler()` dengan **nama file/folder yang terencode** untuk setiap file/folder didalam folder yang dibuka dengan enkripsi `atBash`.
 
 * Lakukan langkah dibawah ini pada fungsi `getattr`.
 1. Dapatkan path dari suatu folder/file relatif terhadap root pada FUSE.
 2. Jika path saat ini bukan root path, lakukan langkah dibawah ini.
-3. Jika predecessor dari folder/file tersebut diawali dengan `AtoZ_`, decode path setelah folder `AtoZ_` dari folder/file tersebut.
+3. Dapatkan awalan, nama lengkap dari awalan, path setelah folder awalan, dan nama folder saat ini.
+4. Jika predecessor dari folder/file tersebut diawali dengan `AtoZ_`, decode path setelah folder `AtoZ_` dari folder/file tersebut.
 
 # Soal 2
 <br><br>

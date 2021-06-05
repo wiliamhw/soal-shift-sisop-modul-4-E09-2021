@@ -14,7 +14,6 @@ static const char *LOG_PATH = "/home/frain8/SinSeiFS.log";
 static const char *VIGENERE_KEY = "SISOP";
 
 /** Cipher Code **/
-
 // Creating a array of upper case alphabets
 char upper_case[]={'Z', 'Y', 'X', 'W', 'V', 'U',
  				   'T', 'S', 'R', 'Q', 'P', 'O',
@@ -28,7 +27,7 @@ char lower_case[]={'z', 'y', 'x', 'w', 'v', 'u',
 					'h', 'g', 'f', 'e', 'd', 'c', 'b', 'a'};
 
 // Encryption and Decryption atbash function
-void atBash(const char *plaintext, char *return_val)
+void atBash(char *text)
 {
     int len = plaintext.size();
     int ascii_char;
@@ -63,18 +62,17 @@ void ROT13(const char *plaintext, char *return_val)
     }
 }
 
-void vigenereEncode(const char *plaintext, char *return_val)
+void vigenereEncode(char *text)
 {
-    // Receive plaintext as input
-    // Return  cyphertext as output
-    sprintf(return_val, "ENCODED_%s", plaintext);
+    text[0] += 1;
 }
 
 void vigenereDecode(const char *cyphertext, char *return_val)
 {
     // Receive cyphertext as input
     // Return  plaintext as output
-    strcpy(return_val, cyphertext + strlen("ENCODED_"));
+    strcpy(return_val, cyphertext);
+    return_val[0] -= 1;
 }
 
 
@@ -116,7 +114,7 @@ void changePath(char *fpath, const char *path)
     } 
 }
 
-void getAwalan(const char *path, char *return_type)
+void getAwalan(const char *path, char *return_str, char *return_type)
 {
     // Receive path as input (example: "AtoZ_folder/DATA_PEN.....")
     // Return awalan (string before the first "_") as output (example: "AtoZ")
@@ -128,7 +126,9 @@ void getAwalan(const char *path, char *return_type)
 
         if (awalan != NULL) {
             // printf("WARNING::getAwalan: %s\n", type[i] + 1);
-            strcpy(return_type, awalan);
+            strcpy(return_str, awalan);
+            type[i][strlen(type[i]) - 1] = '0';
+            strcpy(return_type, type[i] + 1);
             return;
         }
     }
@@ -165,20 +165,13 @@ static int xmp_readdir(const char *path, void *buf, fuse_fill_dir_t filler, off_
 {
     Log("READDIR", path, NULL);
 
-    char fpath[1000], c_path[1000], c_name[1000], *parent_folder = NULL;
+    char fpath[1000], c_path[1000], c_name[1000], type[1000], temp[1000], parent_folder = NULL;
     bool toAtoZ = false;
 
     sprintf(fpath, "%s", DIR_PATH);
     if (strcmp(path, "/") != 0) {
-        getAwalan(path, c_path);
-
-        if (strcmp(c_path, "empty") != 0) {
-            getFileName(c_path, c_name);
-
-            strtok()
-
-        }
-
+        getAwalan(path, c_path, type);
+        vigenereEncode(c_path);
         strcat(fpath, path);
     } 
     printf("Readdir: %s\n", fpath);
@@ -203,7 +196,10 @@ static int xmp_readdir(const char *path, void *buf, fuse_fill_dir_t filler, off_
 
         // Encode filename
         if (strcmp(de->d_name, ".") != 0 && strcmp(de->d_name, "..") != 0) {
-            vigenereEncode(curr_name, de->d_name);
+            if (strcmp(type, "AtoZ") != 0) {
+                strcpy(temp, de->d_name);
+                atBash(temp, de->d_name);
+            }
         }
 
         res = (filler(buf, de->d_name, &st, 0));
