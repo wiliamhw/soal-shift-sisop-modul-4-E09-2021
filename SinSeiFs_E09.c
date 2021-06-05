@@ -137,7 +137,7 @@ void cipherTerminal(char **c_path, char *awalan)
 {
     if (*c_path && strchr(*c_path, '/') != NULL) {
 
-        printf("%s \t%s\n", *c_path, awalan);
+        printf("Terminal: %s\t%s\n", *c_path, awalan);
         if (strcmp(awalan, "AtoZ") == 0) {
             atBash(*c_path);
         }
@@ -227,7 +227,7 @@ static int xmp_read(const char *path, char *buf, size_t size, off_t offset, stru
     getAwalan(path, &c_path, awalan);
     cipherTerminal(&c_path, awalan);
     changePath(fpath, path);
-    printf("Read: %s\n", fpath);
+    printf("WARNING::Read: %s\n", fpath);
 
     fd = open(fpath, O_RDONLY);
 
@@ -257,7 +257,7 @@ static int xmp_write(const char *path, const char *buf, size_t size, off_t offse
     getAwalan(path, &c_path, awalan);
     cipherTerminal(&c_path, awalan);
     changePath(fpath, path);
-    printf("Write: %s\n", fpath);
+    printf("WARNING::Write: %s\n", fpath);
 
     fd = open(fpath, O_WRONLY);
 
@@ -284,9 +284,11 @@ static int xmp_truncate(const char *path, off_t size)
     getAwalan(path, &c_path, awalan);
     cipherTerminal(&c_path, awalan);
     changePath(fpath, path);
-    printf("Trunc: %s\n", fpath);
+    printf("WARNING::Trunc: %s\n", fpath);
 	
 	res = truncate(fpath, size);
+    cipherTerminal(&c_path, awalan);
+
 	if (res == -1)
 		return -errno;
 
@@ -304,9 +306,11 @@ static int xmp_mkdir(const char *path, mode_t mode)
     getAwalan(path, &c_path, awalan);
     cipherTerminal(&c_path, awalan);
     changePath(fpath, path);
-    printf("Mkdir path: %s\n", fpath);
+    printf("WARNING::Mkdir path: %s\n", fpath);
 
 	res = mkdir(fpath, mode);
+    cipherTerminal(&c_path, awalan);
+
 	if (res == -1)
 		return -errno;
 
@@ -324,9 +328,10 @@ static int xmp_unlink(const char *path)
     getAwalan(path, &c_path, awalan);
     cipherTerminal(&c_path, awalan);
     changePath(fpath, path);
-    printf("Unlink path: %s\n", fpath);
+    printf("WARNING::Unlink path: %s\n", fpath);
 
-	res = unlink(path);
+	res = unlink(fpath);
+    
 	if (res == -1)
 		return -errno;
 
@@ -349,8 +354,8 @@ static int xmp_rename(const char *from, const char *to)
 
     getAwalan(to, &to_c_path, to_awalan);
     cipherTerminal(&to_c_path, to_awalan);
-    changePath(to_fpath, from);
-    printf("Rename path: %s --> %s\n", from_fpath, to_fpath);
+    changePath(to_fpath, to);
+    printf("WARNING::Rename path: %s --> %s\n", from_fpath, to_fpath);
 
 	res = rename(from_fpath, to_fpath);
 
