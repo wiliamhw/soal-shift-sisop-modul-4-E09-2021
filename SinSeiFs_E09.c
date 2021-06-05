@@ -1,52 +1,78 @@
 #define FUSE_USE_VERSION 28
 #include <fuse.h>
 #include <stdio.h>
+#include <stdbool.h>
 #include <string.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <dirent.h>
 #include <errno.h>
 #include <sys/time.h>
+#include <ctype.h>
 
 static const char *DIR_PATH = "/home/frain8/Documents/Sisop/temp";
 static const char *LOG_PATH = "/home/frain8/SinSeiFS.log";
 static const char *VIGENERE_KEY = "SISOP";
 
 /** Cipher Code **/
-// char *atBashEncode(const char *plaintext)
+// Encryption and Decryption atbash function
+void atBash(char *input)
+{
+    char *text = strstr(input, "/");
+    if (!text) {
+        text = input;
+    } else {
+        text +=  1;
+    }
+
+    printf("In cipher: %s\n", text);
+    int i = 0;
+    while (text[i] != '\0') {
+        if (isalpha(text[i])) {
+            if (isupper(text[i])) {
+                text[i] = 'Z' + 'A' - text[i];
+            } else {
+                text[i] = 'z' + 'a' - text[i];
+            }
+        } else if (text[i] == '.') {
+            break;
+        }
+        i++;
+    }
+    printf("Out cipher: %s\n", text);
+}
+
+// Encryption and Decryption ROT13 function
+// void ROT13(const char *plaintext, char *return_val)
 // {
-//     // Receive plaintext (normal text) as input
-//     // Return  cyphertext (encrypted text) as output
+//     int len = plaintext.size();
+//     int ascii_char;
+//     for (int i=0; i<len; i++) {
+//         ascii_char = plaintext[i];
+//         if ((ascii_char >= 97 && ascii_char <= 122) || (ascii_char >= 65 && ascii_char <= 90)) {
+//             if (ascii_char > 109 || (ascii_char > 77 && ascii_char < 91)) {
+//                 ascii_char -= 13;
+//                 return_val = return_val + ascii_char;
+//             }
+//             else {
+//                 ascii_char += 13;
+//                 return_val = return_val + ascii_char;
+//             }
+//         }
+//     }
 // }
 
-// char *atBashDecode(const char *cyphertext)
+// void vigenereEncode(char *text)
+// {
+//     text[0] += 1;
+// }
+
+// void vigenereDecode(const char *cyphertext, char *return_val)
 // {
 //     // Receive cyphertext as input
 //     // Return  plaintext as output
-// }
-
-// char *ROT13Encode(const char *plaintext)
-// {
-//     // Receive plaintext as input
-//     // Return  cyphertext as output
-// }
-
-// char *ROT13Decode(const char *cyphertext)
-// {
-//     // Receive cyphertext as input
-//     // Return  plaintext as output
-// }
-
-// char *vigenereEncode(const char *plaintext)
-// {
-//     // Receive plaintext as input
-//     // Return  cyphertext as output
-// }
-
-// char *vigenereDecode(const char *cyphertext)
-// {
-//     // Receive cyphertext as input
-//     // Return  plaintext as output
+//     strcpy(return_val, cyphertext);
+//     return_val[0] -= 1;
 // }
 
 
@@ -80,12 +106,43 @@ void Log(const char *cmd, const char *desc, const char *desc2)
     fclose(F_out);
 }
 
-// char *getAwalan(const char *path)
-// {
-//     // Receive path as input (example: "AtoZ_folder/DATA_PEN.....")
-//     // Return awalan (string before the first "_") as output (example: "AtoZ")
-// }
+void changePath(char *fpath, const char *path)
+{
+    sprintf(fpath, "%s", DIR_PATH);
+    if (strcmp(path, "/") != 0) {
+        strcat(fpath, path);
+    } 
+}
 
+void getAwalan(const char *path, char **return_ptr, char *return_type)
+{
+    char type[3][9] = {"/AtoZ_", "/RX_", "/A_is_a_"};
+    *return_ptr = NULL;
+
+    for (int i = 0; i < 3; i++) {
+        *return_ptr = strstr(path, type[i]);
+
+        if (*return_ptr != NULL) {
+            *return_ptr += 1;
+
+            type[i][strlen(type[i]) - 1] = '\0';
+            strcpy(return_type, type[i] + 1);
+            return;
+        }
+    }
+    strcpy(return_type, "empty");
+}
+
+void cipherTerminal(char **c_path, char *awalan) 
+{
+    if (*c_path && strchr(*c_path, '/') != NULL) {
+
+        printf("Terminal: %s\t%s\n", *c_path, awalan);
+        if (strcmp(awalan, "AtoZ") == 0) {
+            atBash(*c_path);
+        }
+    }
+}
 
 /** XMP Method **/
 static int xmp_getattr(const char *path, struct stat *stbuf)
@@ -93,10 +150,13 @@ static int xmp_getattr(const char *path, struct stat *stbuf)
     Log("GETATTR", path, NULL);
 
     int res;
-    char fpath[1000];
+    char *c_path = NULL;
+    char fpath[1000], awalan[9];
 
+    getAwalan(path, &c_path, awalan);
+    cipherTerminal(&c_path, awalan);
     sprintf(fpath, "%s%s", DIR_PATH, path);
-    printf("Getattr: %s\n", fpath);
+    printf("WARNING::Getattr: %s\n", fpath);
 
     res = lstat(fpath, stbuf);
 
@@ -110,18 +170,15 @@ static int xmp_readdir(const char *path, void *buf, fuse_fill_dir_t filler, off_
 {
     Log("READDIR", path, NULL);
 
-    char fpath[1000];
-    if (strcmp(path, "/") == 0) {
-        path = DIR_PATH;
-        sprintf(fpath, "%s", path);
-    }
-    else {
-        sprintf(fpath, "%s%s", DIR_PATH, path);
-    } 
+    char *c_path = NULL;
+    char fpath[1000], awalan[9];
 
-    printf("Readdir: %s\n", fpath);
+    getAwalan(path, &c_path, awalan);
+    cipherTerminal(&c_path, awalan);
+    changePath(fpath, path);
+    printf("WARNING::Readdir: %s\n", fpath);
+
     int res = 0;
-
     DIR *dp;
     struct dirent *de;
     (void)offset;
@@ -138,12 +195,20 @@ static int xmp_readdir(const char *path, void *buf, fuse_fill_dir_t filler, off_
 
         st.st_ino = de->d_ino;
         st.st_mode = de->d_type << 12;
+
+        // Encode filename
+        if (strcmp(de->d_name, ".") != 0 && strcmp(de->d_name, "..") != 0) {
+            if (c_path != NULL) {
+                atBash(de->d_name);
+            }
+        }
+
         res = (filler(buf, de->d_name, &st, 0));
 
         if (res != 0)
             break;
     }
-
+    printf("WARNING::Finish readdir:\n");
     closedir(dp);
 
     return 0;
@@ -153,20 +218,16 @@ static int xmp_read(const char *path, char *buf, size_t size, off_t offset, stru
 {
     Log("READ", path, NULL);
 
-    char fpath[1000];
-    if (strcmp(path, "/") == 0) {
-        path = DIR_PATH;
-
-        sprintf(fpath, "%s", path);
-    }
-    else
-        sprintf(fpath, "%s%s", DIR_PATH, path);
-
-    printf("Read: %s\n", fpath);
+    char *c_path = NULL;
+    char fpath[1000], awalan[9];
     int res = 0;
     int fd = 0;
-
     (void)fi;
+
+    getAwalan(path, &c_path, awalan);
+    cipherTerminal(&c_path, awalan);
+    changePath(fpath, path);
+    printf("WARNING::Read: %s\n", fpath);
 
     fd = open(fpath, O_RDONLY);
 
@@ -187,18 +248,16 @@ static int xmp_write(const char *path, const char *buf, size_t size, off_t offse
 {
     Log("WRITE", path, NULL);
 
-    char fpath[1000];
-    if (strcmp(path, "/") == 0) {
-        path = DIR_PATH;
-        sprintf(fpath, "%s", path);
-    }
-    else
-        sprintf(fpath, "%s%s", DIR_PATH, path);
-
-    printf("Write: %s\n", fpath);
+    char *c_path = NULL;
+    char fpath[1000], awalan[9];
     int res = 0;
     int fd = 0;
     (void)fi;
+
+    getAwalan(path, &c_path, awalan);
+    cipherTerminal(&c_path, awalan);
+    changePath(fpath, path);
+    printf("WARNING::Write: %s\n", fpath);
 
     fd = open(fpath, O_WRONLY);
 
@@ -218,20 +277,18 @@ static int xmp_truncate(const char *path, off_t size)
 {
     Log("TRUNCATE", path, NULL);
 
-	printf("Trunc: %s\n", path);
-    char fpath[1000];
-    if (strcmp(path, "/") == 0) {
-        path = DIR_PATH;
-        sprintf(fpath, "%s", path);
-    }
-    else
-        sprintf(fpath, "%s%s", DIR_PATH, path);
+    char *c_path = NULL;
+    char fpath[1000], awalan[9];
+    int res;
 
-    printf("Trunc path: %s\n", fpath);
+    getAwalan(path, &c_path, awalan);
+    cipherTerminal(&c_path, awalan);
+    changePath(fpath, path);
+    printf("WARNING::Trunc: %s\n", fpath);
 	
-	int res;
-
 	res = truncate(fpath, size);
+    cipherTerminal(&c_path, awalan);
+
 	if (res == -1)
 		return -errno;
 
@@ -242,18 +299,18 @@ static int xmp_mkdir(const char *path, mode_t mode)
 {
     Log("MKDIR", path, NULL);
 
-	int res;
-    char fpath[1000];
-    if (strcmp(path, "/") == 0) {
-        path = DIR_PATH;
-        sprintf(fpath, "%s", path);
-    }
-    else {
-        sprintf(fpath, "%s%s", DIR_PATH, path);
-    }
-    printf("Mkdir path: %s\n", fpath);
+	char *c_path = NULL;
+    char fpath[1000], awalan[9];
+    int res;
+
+    getAwalan(path, &c_path, awalan);
+    cipherTerminal(&c_path, awalan);
+    changePath(fpath, path);
+    printf("WARNING::Mkdir path: %s\n", fpath);
 
 	res = mkdir(fpath, mode);
+    cipherTerminal(&c_path, awalan);
+
 	if (res == -1)
 		return -errno;
 
@@ -264,18 +321,17 @@ static int xmp_unlink(const char *path)
 {
     Log("UNLINK", path, NULL);
 
-	int res;
-    char fpath[1000];
-    if (strcmp(path, "/") == 0) {
-        path = DIR_PATH;
-        sprintf(fpath, "%s", path);
-    }
-    else {
-        sprintf(fpath, "%s%s", DIR_PATH, path);
-    }
-    printf("Unlink path: %s\n", fpath);
+	char *c_path = NULL;
+    char fpath[1000], awalan[9];
+    int res;
 
-	res = unlink(path);
+    getAwalan(path, &c_path, awalan);
+    cipherTerminal(&c_path, awalan);
+    changePath(fpath, path);
+    printf("WARNING::Unlink path: %s\n", fpath);
+
+	res = unlink(fpath);
+    
 	if (res == -1)
 		return -errno;
 
@@ -286,26 +342,23 @@ static int xmp_rename(const char *from, const char *to)
 {
     Log("RENAME", from, to);
 
+    char *from_c_path = NULL;
+    char *to_c_path = NULL;
+    char from_fpath[1000], from_awalan[9];
+    char to_fpath[1000], to_awalan[9];
 	int res;
-    char _from[1000], _to[1000];
-    if (strcmp(_from, "/") == 0) {
-        from = DIR_PATH;
-        sprintf(_from, "%s", from);
-    }
-    else {
-        sprintf(_from, "%s%s", DIR_PATH, from);
-    }
-    if (strcmp(_to, "/") == 0) {
-        from = DIR_PATH;
-        sprintf(_to, "%s", to);
-    }
-    else {
-        sprintf(_to, "%s%s", DIR_PATH, to);
-    }
 
-    printf("Rename path: %s --> %s\n", _from, _to);
+    getAwalan(from, &from_c_path, from_awalan);
+    cipherTerminal(&from_c_path, from_awalan);
+    changePath(from_fpath, from);
 
-	res = rename(_from, _to);
+    getAwalan(to, &to_c_path, to_awalan);
+    cipherTerminal(&to_c_path, to_awalan);
+    changePath(to_fpath, to);
+    printf("WARNING::Rename path: %s --> %s\n", from_fpath, to_fpath);
+
+	res = rename(from_fpath, to_fpath);
+
 	if (res == -1)
 		return -errno;
 
