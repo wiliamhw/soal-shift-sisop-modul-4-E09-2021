@@ -216,7 +216,7 @@ static int xmp_readdir(const char *path, void *buf, fuse_fill_dir_t filler, off_
         if (res != 0)
             break;
     }
-    printf("WARNING::Finish readdir:\n");
+    printf("INFO::Finish readdir:\n");
     closedir(dp);
 
     return 0;
@@ -389,6 +389,155 @@ static int xmp_rename(const char *from, const char *to)
 	return 0;
 }
 
+static int xmp_fsync(const char *path, int isdatasync,
+			 struct fuse_file_info *fi)
+{
+	/* Just a stub.	 This method is optional and can safely be left
+	   unimplemented */
+    sysLog("FSYNC", path, NULL);
+
+	(void) path;
+	(void) isdatasync;
+	(void) fi;
+	return 0;
+}
+
+static int xmp_access(const char *path, int mask)
+{
+    sysLog("ACCESS", path, NULL);
+
+	char *c_path = NULL;
+    char fpath[1000], awalan[9];
+    int res;
+
+    getAwalan(path, &c_path, awalan);
+    cipherTerminal(&c_path, awalan);
+    changePath(fpath, path);
+    printf("WARNING::Access path: %s\n", fpath);
+
+	res = access(fpath, mask);
+	if (res == -1)
+		return -errno;
+
+	return 0;
+}
+
+static int xmp_mknod(const char *path, mode_t mode, dev_t rdev)
+{
+	sysLog("MKNOD", path, NULL);
+
+	char *c_path = NULL;
+    char fpath[1000], awalan[9];
+    int res;
+
+    printf("INFO::Mknod origin path: %s\n", path);
+    getAwalan(path, &c_path, awalan);
+    cipherTerminal(&c_path, awalan);
+    changePath(fpath, path);
+    printf("WARNING::Mknod path: %s\n", fpath);
+
+	if (S_ISREG(mode)) {
+		res = open(fpath, O_CREAT | O_EXCL | O_WRONLY, mode);
+		if (res >= 0)
+			res = close(res);
+	} else if (S_ISFIFO(mode))
+		res = mkfifo(fpath, mode);
+	else
+		res = mknod(fpath, mode, rdev);
+	if (res == -1)
+		return -errno;
+
+	return 0;
+}
+
+static int xmp_rmdir(const char *path)
+{
+	sysLog("RMDIR", path, NULL);
+
+	char *c_path = NULL;
+    char fpath[1000], awalan[9];
+    int res;
+
+    getAwalan(path, &c_path, awalan);
+    cipherTerminal(&c_path, awalan);
+    changePath(fpath, path);
+    printf("WARNING::Rmdir path: %s\n", fpath);
+
+	res = rmdir(fpath);
+	if (res == -1)
+		return -errno;
+
+	return 0;
+}
+
+static int xmp_open(const char *path, struct fuse_file_info *fi)
+{
+	sysLog("OPEN", path, NULL);
+
+	char *c_path = NULL;
+    char fpath[1000], awalan[9];
+    int res;
+
+    getAwalan(path, &c_path, awalan);
+    cipherTerminal(&c_path, awalan);
+    changePath(fpath, path);
+    printf("WARNING::Open path: %s\n", fpath);
+
+	res = open(fpath, fi->flags);
+	if (res == -1)
+		return -errno;
+
+	close(res);
+	return 0;
+}
+
+static int xmp_symlink(const char *from, const char *to)
+{
+	sysLog("SYMLINK", from, to);
+
+    char *fc_path = NULL;
+    char *tc_path = NULL;
+    char f_fpath[1000], f_awalan[9];
+    char t_fpath[1000], t_awalan[9];
+	int res;
+
+    getAwalan(from, &fc_path, f_awalan);
+    cipherTerminal(&fc_path, f_awalan);
+    changePath(f_fpath, from);
+
+    getAwalan(to, &tc_path, t_awalan);
+    cipherTerminal(&tc_path, t_awalan);
+    changePath(t_fpath, to);
+    printf("WARNING::Symlink path: %s --> %s\n", f_fpath, t_fpath);
+
+	res = symlink(f_fpath, t_fpath);
+	if (res == -1)
+		return -errno;
+
+	return 0;
+}
+
+static int xmp_readlink(const char *path, char *buf, size_t size)
+{
+	sysLog("READLINK", path, NULL);
+
+	char *c_path = NULL;
+    char fpath[1000], awalan[9];
+    int res;
+
+    getAwalan(path, &c_path, awalan);
+    cipherTerminal(&c_path, awalan);
+    changePath(fpath, path);
+    printf("WARNING::Readlink path: %s\n", fpath);
+
+	res = readlink(fpath, buf, size - 1);
+	if (res == -1)
+		return -errno;
+
+	buf[res] = '\0';
+	return 0;
+}
+
 static struct fuse_operations xmp_oper = {
     .getattr = xmp_getattr,
     .readdir = xmp_readdir,
@@ -397,7 +546,14 @@ static struct fuse_operations xmp_oper = {
     .truncate = xmp_truncate,
     .mkdir = xmp_mkdir,
     .unlink = xmp_unlink,
-    .rename = xmp_rename
+    .rename = xmp_rename,
+    .fsync = xmp_fsync,
+    .access = xmp_access,
+    .mknod = xmp_mknod,
+    .rmdir = xmp_rmdir,
+    .open = xmp_open,
+    .symlink = xmp_symlink,
+    .readlink = xmp_readlink
 };
 
 int main(int argc, char *argv[])
