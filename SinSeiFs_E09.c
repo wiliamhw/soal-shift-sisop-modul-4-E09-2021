@@ -293,21 +293,20 @@ static int xmp_truncate(const char *path, off_t size)
     cipherTerminal(&c_path, awalan);
     changePath(fpath, path);
     printf("WARNING::Trunc: %s\n", fpath);
-	
-	res = truncate(fpath, size);
+    
+    res = truncate(fpath, size);
     cipherTerminal(&c_path, awalan);
 
-	if (res == -1)
-		return -errno;
-
-	return 0;
+    if (res == -1)
+        return -errno;
+    return 0;
 }
 
 static int xmp_mkdir(const char *path, mode_t mode)
 {
     sysLog("MKDIR", path, NULL);
 
-	char *c_path = NULL;
+    char *c_path = NULL;
     char fpath[1000], awalan[9];
     int res;
 
@@ -316,7 +315,7 @@ static int xmp_mkdir(const char *path, mode_t mode)
     changePath(fpath, path);
     printf("WARNING::Mkdir path: %s\n", fpath);
 
-	res = mkdir(fpath, mode);
+    res = mkdir(fpath, mode);
     cipherTerminal(&c_path, awalan);
 
     char *folder_name = strrchr(fpath, '/');
@@ -329,17 +328,17 @@ static int xmp_mkdir(const char *path, mode_t mode)
     }
 
 
-	if (res == -1)
+    if (res == -1)
 		return -errno;
 
-	return 0;
+    return 0;
 }
 
 static int xmp_unlink(const char *path)
 {
     sysLog("UNLINK", path, NULL);
 
-	char *c_path = NULL;
+    char *c_path = NULL;
     char fpath[1000], awalan[9];
     int res;
 
@@ -348,12 +347,12 @@ static int xmp_unlink(const char *path)
     changePath(fpath, path);
     printf("WARNING::Unlink path: %s\n", fpath);
 
-	res = unlink(fpath);
+    res = unlink(fpath);
     
-	if (res == -1)
+    if (res == -1)
 		return -errno;
 
-	return 0;
+    return 0;
 }
 
 static int xmp_rename(const char *from, const char *to)
@@ -364,9 +363,9 @@ static int xmp_rename(const char *from, const char *to)
     char *tc_path = NULL;
     char f_fpath[1000], f_awalan[9];
     char t_fpath[1000], t_awalan[9];
-	int res;
+    int res;
 
-    getAwalan(from, &fc_path, f_awalan);
+	getAwalan(from, &fc_path, f_awalan);
     cipherTerminal(&fc_path, f_awalan);
     changePath(f_fpath, from);
 
@@ -375,7 +374,7 @@ static int xmp_rename(const char *from, const char *to)
     changePath(t_fpath, to);
     printf("WARNING::Rename path: %s --> %s\n", f_fpath, t_fpath);
 
-	res = rename(f_fpath, t_fpath);
+    res = rename(f_fpath, t_fpath);
 
     char *new_name = strrchr(t_fpath, '/');
     printf("INFO::To path: %s\n", new_name);
@@ -383,30 +382,30 @@ static int xmp_rename(const char *from, const char *to)
         Log(f_fpath, t_fpath);
     }
 
-	if (res == -1)
+    if (res == -1)
 		return -errno;
 
-	return 0;
+    return 0;
 }
 
 static int xmp_fsync(const char *path, int isdatasync,
 			 struct fuse_file_info *fi)
 {
-	/* Just a stub.	 This method is optional and can safely be left
-	   unimplemented */
+    /* Just a stub. This method is optional and can safely 
+    	be left unimplemented */
     sysLog("FSYNC", path, NULL);
 
-	(void) path;
-	(void) isdatasync;
-	(void) fi;
-	return 0;
+    (void) path;
+    (void) isdatasync;
+    (void) fi;
+    return 0;
 }
 
 static int xmp_access(const char *path, int mask)
 {
     sysLog("ACCESS", path, NULL);
 
-	char *c_path = NULL;
+    char *c_path = NULL;
     char fpath[1000], awalan[9];
     int res;
 
@@ -415,18 +414,18 @@ static int xmp_access(const char *path, int mask)
     changePath(fpath, path);
     printf("WARNING::Access path: %s\n", fpath);
 
-	res = access(fpath, mask);
-	if (res == -1)
+    res = access(fpath, mask);
+    if (res == -1)
 		return -errno;
 
-	return 0;
+    return 0;
 }
 
 static int xmp_mknod(const char *path, mode_t mode, dev_t rdev)
 {
-	sysLog("MKNOD", path, NULL);
+    sysLog("MKNOD", path, NULL);
 
-	char *c_path = NULL;
+    char *c_path = NULL;
     char fpath[1000], awalan[9];
     int res;
 
@@ -436,25 +435,25 @@ static int xmp_mknod(const char *path, mode_t mode, dev_t rdev)
     changePath(fpath, path);
     printf("WARNING::Mknod path: %s\n", fpath);
 
-	if (S_ISREG(mode)) {
-		res = open(fpath, O_CREAT | O_EXCL | O_WRONLY, mode);
-		if (res >= 0)
-			res = close(res);
-	} else if (S_ISFIFO(mode))
+    if (S_ISREG(mode)) {
+        res = open(fpath, O_CREAT | O_EXCL | O_WRONLY, mode);
+	if (res >= 0)
+		res = close(res);
+    } else if (S_ISFIFO(mode))
 		res = mkfifo(fpath, mode);
-	else
+    else
 		res = mknod(fpath, mode, rdev);
-	if (res == -1)
+    if (res == -1)
 		return -errno;
 
-	return 0;
+    return 0;
 }
 
 static int xmp_rmdir(const char *path)
 {
-	sysLog("RMDIR", path, NULL);
+    sysLog("RMDIR", path, NULL);
 
-	char *c_path = NULL;
+    char *c_path = NULL;
     char fpath[1000], awalan[9];
     int res;
 
@@ -463,18 +462,18 @@ static int xmp_rmdir(const char *path)
     changePath(fpath, path);
     printf("WARNING::Rmdir path: %s\n", fpath);
 
-	res = rmdir(fpath);
-	if (res == -1)
+    res = rmdir(fpath);
+    if (res == -1)
 		return -errno;
 
-	return 0;
+    return 0;
 }
 
 static int xmp_open(const char *path, struct fuse_file_info *fi)
 {
-	sysLog("OPEN", path, NULL);
+    sysLog("OPEN", path, NULL);
 
-	char *c_path = NULL;
+    char *c_path = NULL;
     char fpath[1000], awalan[9];
     int res;
 
@@ -483,12 +482,12 @@ static int xmp_open(const char *path, struct fuse_file_info *fi)
     changePath(fpath, path);
     printf("WARNING::Open path: %s\n", fpath);
 
-	res = open(fpath, fi->flags);
-	if (res == -1)
+    res = open(fpath, fi->flags);
+    if (res == -1)
 		return -errno;
 
-	close(res);
-	return 0;
+    close(res);
+    return 0;
 }
 
 static int xmp_symlink(const char *from, const char *to)
