@@ -8,7 +8,24 @@
 <br><br>
 
 # Soal 1
-<br><br>
+## Subsoal a
+### Penjelasan Soal
+* Jika direktori bernama `AtoZ_`, maka direktori tersebut akan menjadi direktori ter-encode.
+* Ekstensi tidak diencode.
+
+## Penyelesaian Soal
+* Lakukan langkah dibawah ini pada fungsi `readdir`.
+1. Dapatkan path dari suatu folder relatif terhadap root pada FUSE.
+2. Jika path saat ini bukan root path, lakukan langkah dibawah ini.
+3. Jika predecessor dari folder saat ini diawali dengan `AtoZ_`, decode path folder tersebut.
+4. Dapatkan full path dari folder.
+5. Buka folder dengan full path.
+6. Jika di dalam path terdapat folder yang diawali dengan `AtoZ_`, isi `filler()` dengan **nama file/folder yang terencode** untuk setiap file/folder didalam folder yang dibuka.
+
+* Lakukan langkah dibawah ini pada fungsi `getattr`.
+1. Dapatkan path dari suatu folder/file relatif terhadap root pada FUSE.
+2. Jika path saat ini bukan root path, lakukan langkah dibawah ini.
+3. Jika predecessor dari folder/file tersebut diawali dengan `AtoZ_`, decode path setelah folder `AtoZ_` dari folder/file tersebut.
 
 # Soal 2
 <br><br>

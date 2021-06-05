@@ -38,17 +38,19 @@ static const char *VIGENERE_KEY = "SISOP";
 //     // Return  plaintext as output
 // }
 
-// void vigenereEncode(const char *plaintext, char *return_val)
-// {
-//     // Receive plaintext as input
-//     // Return  cyphertext as output
-// }
+void vigenereEncode(const char *plaintext, char *return_val)
+{
+    // Receive plaintext as input
+    // Return  cyphertext as output
+    sprintf(return_val, "ENCODED_%s", plaintext);
+}
 
-// void vigenereDecode(const char *cyphertext, har *return_val)
-// {
-//     // Receive cyphertext as input
-//     // Return  plaintext as output
-// }
+void vigenereDecode(const char *cyphertext, char *return_val)
+{
+    // Receive cyphertext as input
+    // Return  plaintext as output
+    strcpy(return_val, cyphertext + strlen("ENCODED_"));
+}
 
 
 /** Helpers **/
@@ -93,22 +95,28 @@ void getAwalan(const char *path, char *return_type)
 {
     // Receive path as input (example: "AtoZ_folder/DATA_PEN.....")
     // Return awalan (string before the first "_") as output (example: "AtoZ")
-    char type[3][9] = {"/AtoZ", "/RX", "/A_is_a_"};
+    char type[3][9] = {"/AtoZ_", "/RX_", "/A_is_a_"};
     char *awalan = NULL;
 
     for (int i = 0; i < 3; i++) {
         awalan = strstr(path, type[i]);
 
         if (awalan != NULL) {
-            printf("WARNING::getAwalan: %s\n", type[i] + 1);
-            strcpy(return_type, type[i] + 1);
+            // printf("WARNING::getAwalan: %s\n", type[i] + 1);
+            strcpy(return_type, awalan);
             return;
         }
     }
-    printf("getAwalan: %s\n", path);
+    // printf("getAwalan: %s\n", path);
     strcpy(return_type, "empty");
 }
 
+void getFileName(char *filePath, char *return_filename)
+{
+    char *ret = strrchr(filePath, '/');
+    if (ret) strcpy(return_filename, ret);
+    else strcpy(return_filename, filePath);
+}
 
 /** XMP Method **/
 static int xmp_getattr(const char *path, struct stat *stbuf)
@@ -132,8 +140,22 @@ static int xmp_readdir(const char *path, void *buf, fuse_fill_dir_t filler, off_
 {
     Log("READDIR", path, NULL);
 
-    char fpath[1000];
-    changePath(fpath, path);
+    char fpath[1000], c_path[1000], c_name[1000], *parent_folder = NULL;
+    bool toAtoZ = false;
+
+    sprintf(fpath, "%s", DIR_PATH);
+    if (strcmp(path, "/") != 0) {
+        getAwalan(path, c_path);
+
+        if (strcmp(c_path, "empty") != 0) {
+            getFileName(c_path, c_name);
+
+            strtok()
+
+        }
+
+        strcat(fpath, path);
+    } 
     printf("Readdir: %s\n", fpath);
 
     int res = 0;
@@ -153,6 +175,12 @@ static int xmp_readdir(const char *path, void *buf, fuse_fill_dir_t filler, off_
 
         st.st_ino = de->d_ino;
         st.st_mode = de->d_type << 12;
+
+        // Encode filename
+        if (strcmp(de->d_name, ".") != 0 && strcmp(de->d_name, "..") != 0) {
+            vigenereEncode(curr_name, de->d_name);
+        }
+
         res = (filler(buf, de->d_name, &st, 0));
 
         if (res != 0)
