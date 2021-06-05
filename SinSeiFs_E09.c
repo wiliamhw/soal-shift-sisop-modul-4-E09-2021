@@ -14,29 +14,54 @@ static const char *LOG_PATH = "/home/frain8/SinSeiFS.log";
 static const char *VIGENERE_KEY = "SISOP";
 
 /** Cipher Code **/
-// void atBashEncode(const char *plaintext, char *return_val)
-// {
-//     // Receive plaintext (normal text) as input
-//     // Return  cyphertext (encrypted text) as output
-// }
 
-// void atBashDecode(const char *cyphertext, char *return_val)
-// {
-//     // Receive cyphertext as input
-//     // Return  plaintext as output
-// }
+// Creating a array of upper case alphabets
+char upper_case[]={'Z', 'Y', 'X', 'W', 'V', 'U',
+ 				   'T', 'S', 'R', 'Q', 'P', 'O',
+				   'N', 'M', 'L', 'K', 'J', 'I', 
+				   'H', 'G', 'F', 'E', 'D', 'C', 'B', 'A'};
 
-// void ROT13Encode(const char *plaintext, char *return_val)
-// {
-//     // Receive plaintext as input
-//     // Return  cyphertext as output
-// }
+// Creating a array of lower case alphabets				   
+char lower_case[]={'z', 'y', 'x', 'w', 'v', 'u',
+  					't', 's', 'r', 'q', 'p', 'o',
+					'n', 'm', 'l', 'k', 'j', 'i',
+					'h', 'g', 'f', 'e', 'd', 'c', 'b', 'a'};
 
-// void ROT13Decode(const char *cyphertext, char *return_val)
-// {
-//     // Receive cyphertext as input
-//     // Return  plaintext as output
-// }
+// Encryption and Decryption atbash function
+void atBash(const char *plaintext, char *return_val)
+{
+    int len = plaintext.size();
+    int ascii_char;
+    for (int i=0; i<len; i++) {
+        ascii_char = plaintext[i];
+        if (ascii_char >= 'A' && ascii_char <= 'Z') {
+            return_val = return_val + upper_case[ascii_char - 65];
+        }
+        else {
+            return_val = return_val + lower_case[ascii_char - 97];
+        }
+    }
+}
+
+// Encryption and Decryption ROT13 function
+void ROT13(const char *plaintext, char *return_val)
+{
+    int len = plaintext.size();
+    int ascii_char;
+    for (int i=0; i<len; i++) {
+        ascii_char = plaintext[i];
+        if ((ascii_char >= 97 && ascii_char <= 122) || (ascii_char >= 65 && ascii_char <= 90)) {
+            if (ascii_char > 109 || (ascii_char > 77 && ascii_char < 91)) {
+                ascii_char -= 13;
+                return_val = return_val + ascii_char;
+            }
+            else {
+                ascii_char += 13;
+                return_val = return_val + ascii_char;
+            }
+        }
+    }
+}
 
 void vigenereEncode(const char *plaintext, char *return_val)
 {
