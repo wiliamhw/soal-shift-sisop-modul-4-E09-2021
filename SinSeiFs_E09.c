@@ -172,7 +172,7 @@ static int xmp_readdir(const char *path, void *buf, fuse_fill_dir_t filler, off_
 
     char *c_path = NULL;
     char fpath[1000], awalan[9];
-    
+
     getAwalan(path, &c_path, awalan);
     cipherTerminal(&c_path, awalan);
     changePath(fpath, path);
@@ -208,7 +208,7 @@ static int xmp_readdir(const char *path, void *buf, fuse_fill_dir_t filler, off_
         if (res != 0)
             break;
     }
-
+    printf("WARNING::Finish readdir:\n");
     closedir(dp);
 
     return 0;
@@ -218,13 +218,16 @@ static int xmp_read(const char *path, char *buf, size_t size, off_t offset, stru
 {
     Log("READ", path, NULL);
 
-    char fpath[1000];
-    changePath(fpath, path);
-    printf("Read: %s\n", fpath);
+    char *c_path = NULL;
+    char fpath[1000], awalan[9];
     int res = 0;
     int fd = 0;
-
     (void)fi;
+
+    getAwalan(path, &c_path, awalan);
+    cipherTerminal(&c_path, awalan);
+    changePath(fpath, path);
+    printf("Read: %s\n", fpath);
 
     fd = open(fpath, O_RDONLY);
 
@@ -245,13 +248,16 @@ static int xmp_write(const char *path, const char *buf, size_t size, off_t offse
 {
     Log("WRITE", path, NULL);
 
-    char fpath[1000];
-    changePath(fpath, path);
-    printf("Write: %s\n", fpath);
-
+    char *c_path = NULL;
+    char fpath[1000], awalan[9];
     int res = 0;
     int fd = 0;
     (void)fi;
+
+    getAwalan(path, &c_path, awalan);
+    cipherTerminal(&c_path, awalan);
+    changePath(fpath, path);
+    printf("Write: %s\n", fpath);
 
     fd = open(fpath, O_WRONLY);
 
@@ -271,13 +277,15 @@ static int xmp_truncate(const char *path, off_t size)
 {
     Log("TRUNCATE", path, NULL);
 
-	printf("Trunc: %s\n", path);
-    char fpath[1000];
-    changePath(fpath, path);
-    printf("Trunc path: %s\n", fpath);
-	
-	int res;
+    char *c_path = NULL;
+    char fpath[1000], awalan[9];
+    int res;
 
+    getAwalan(path, &c_path, awalan);
+    cipherTerminal(&c_path, awalan);
+    changePath(fpath, path);
+    printf("Trunc: %s\n", fpath);
+	
 	res = truncate(fpath, size);
 	if (res == -1)
 		return -errno;
@@ -289,8 +297,12 @@ static int xmp_mkdir(const char *path, mode_t mode)
 {
     Log("MKDIR", path, NULL);
 
-	int res;
-    char fpath[1000];
+	char *c_path = NULL;
+    char fpath[1000], awalan[9];
+    int res;
+
+    getAwalan(path, &c_path, awalan);
+    cipherTerminal(&c_path, awalan);
     changePath(fpath, path);
     printf("Mkdir path: %s\n", fpath);
 
@@ -305,8 +317,12 @@ static int xmp_unlink(const char *path)
 {
     Log("UNLINK", path, NULL);
 
-	int res;
-    char fpath[1000];
+	char *c_path = NULL;
+    char fpath[1000], awalan[9];
+    int res;
+
+    getAwalan(path, &c_path, awalan);
+    cipherTerminal(&c_path, awalan);
     changePath(fpath, path);
     printf("Unlink path: %s\n", fpath);
 
@@ -321,13 +337,23 @@ static int xmp_rename(const char *from, const char *to)
 {
     Log("RENAME", from, to);
 
+    char *from_c_path = NULL;
+    char *to_c_path = NULL;
+    char from_fpath[1000], from_awalan[9];
+    char to_fpath[1000], to_awalan[9];
 	int res;
-    char _from[1000], _to[1000];
-    changePath(_from, from);
-    changePath(_to, to);
-    printf("Rename path: %s --> %s\n", _from, _to);
 
-	res = rename(_from, _to);
+    getAwalan(from, &from_c_path, from_awalan);
+    cipherTerminal(&from_c_path, from_awalan);
+    changePath(from_fpath, from);
+
+    getAwalan(to, &to_c_path, to_awalan);
+    cipherTerminal(&to_c_path, to_awalan);
+    changePath(to_fpath, from);
+    printf("Rename path: %s --> %s\n", from_fpath, to_fpath);
+
+	res = rename(from_fpath, to_fpath);
+
 	if (res == -1)
 		return -errno;
 
