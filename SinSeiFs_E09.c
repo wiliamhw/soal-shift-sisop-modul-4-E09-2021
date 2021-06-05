@@ -152,6 +152,13 @@ void cipherTerminal(char **c_path, char *awalan)
     }
 }
 
+void setupPath(const char *path, char *fpath, char **c_path, char *awalan)
+{
+    getAwalan(path, c_path, awalan);
+    cipherTerminal(c_path, awalan);
+    changePath(fpath, path);
+}
+
 /** XMP Method **/
 static int xmp_getattr(const char *path, struct stat *stbuf)
 {
@@ -160,10 +167,7 @@ static int xmp_getattr(const char *path, struct stat *stbuf)
     int res;
     char *c_path = NULL;
     char fpath[1000], awalan[9];
-
-    getAwalan(path, &c_path, awalan);
-    cipherTerminal(&c_path, awalan);
-    sprintf(fpath, "%s%s", DIR_PATH, path);
+    setupPath(path, fpath, &c_path, awalan);
     printf("WARNING::Getattr: %s\n", fpath);
 
     res = lstat(fpath, stbuf);
@@ -180,10 +184,7 @@ static int xmp_readdir(const char *path, void *buf, fuse_fill_dir_t filler, off_
 
     char *c_path = NULL;
     char fpath[1000], awalan[9];
-
-    getAwalan(path, &c_path, awalan);
-    cipherTerminal(&c_path, awalan);
-    changePath(fpath, path);
+    setupPath(path, fpath, &c_path, awalan);
     printf("WARNING::Readdir: %s\n", fpath);
 
     int res = 0;
@@ -231,10 +232,7 @@ static int xmp_read(const char *path, char *buf, size_t size, off_t offset, stru
     int res = 0;
     int fd = 0;
     (void)fi;
-
-    getAwalan(path, &c_path, awalan);
-    cipherTerminal(&c_path, awalan);
-    changePath(fpath, path);
+    setupPath(path, fpath, &c_path, awalan);
     printf("WARNING::Read: %s\n", fpath);
 
     fd = open(fpath, O_RDONLY);
@@ -261,10 +259,7 @@ static int xmp_write(const char *path, const char *buf, size_t size, off_t offse
     int res = 0;
     int fd = 0;
     (void)fi;
-
-    getAwalan(path, &c_path, awalan);
-    cipherTerminal(&c_path, awalan);
-    changePath(fpath, path);
+    setupPath(path, fpath, &c_path, awalan);
     printf("WARNING::Write: %s\n", fpath);
 
     fd = open(fpath, O_WRONLY);
@@ -288,10 +283,7 @@ static int xmp_truncate(const char *path, off_t size)
     char *c_path = NULL;
     char fpath[1000], awalan[9];
     int res;
-
-    getAwalan(path, &c_path, awalan);
-    cipherTerminal(&c_path, awalan);
-    changePath(fpath, path);
+    setupPath(path, fpath, &c_path, awalan);
     printf("WARNING::Trunc: %s\n", fpath);
     
     res = truncate(fpath, size);
@@ -309,10 +301,7 @@ static int xmp_mkdir(const char *path, mode_t mode)
     char *c_path = NULL;
     char fpath[1000], awalan[9];
     int res;
-
-    getAwalan(path, &c_path, awalan);
-    cipherTerminal(&c_path, awalan);
-    changePath(fpath, path);
+    setupPath(path, fpath, &c_path, awalan);
     printf("WARNING::Mkdir path: %s\n", fpath);
 
     res = mkdir(fpath, mode);
@@ -341,10 +330,7 @@ static int xmp_unlink(const char *path)
     char *c_path = NULL;
     char fpath[1000], awalan[9];
     int res;
-
-    getAwalan(path, &c_path, awalan);
-    cipherTerminal(&c_path, awalan);
-    changePath(fpath, path);
+    setupPath(path, fpath, &c_path, awalan);
     printf("WARNING::Unlink path: %s\n", fpath);
 
     res = unlink(fpath);
@@ -364,14 +350,8 @@ static int xmp_rename(const char *from, const char *to)
     char f_fpath[1000], f_awalan[9];
     char t_fpath[1000], t_awalan[9];
     int res;
-
-	getAwalan(from, &fc_path, f_awalan);
-    cipherTerminal(&fc_path, f_awalan);
-    changePath(f_fpath, from);
-
-    getAwalan(to, &tc_path, t_awalan);
-    cipherTerminal(&tc_path, t_awalan);
-    changePath(t_fpath, to);
+    setupPath(from, f_fpath, &fc_path, f_awalan);
+    setupPath(to, t_fpath, &tc_path, t_awalan);
     printf("WARNING::Rename path: %s --> %s\n", f_fpath, t_fpath);
 
     res = rename(f_fpath, t_fpath);
@@ -408,10 +388,7 @@ static int xmp_access(const char *path, int mask)
     char *c_path = NULL;
     char fpath[1000], awalan[9];
     int res;
-
-    getAwalan(path, &c_path, awalan);
-    cipherTerminal(&c_path, awalan);
-    changePath(fpath, path);
+    setupPath(path, fpath, &c_path, awalan);
     printf("WARNING::Access path: %s\n", fpath);
 
     res = access(fpath, mask);
@@ -430,9 +407,7 @@ static int xmp_mknod(const char *path, mode_t mode, dev_t rdev)
     int res;
 
     printf("INFO::Mknod origin path: %s\n", path);
-    getAwalan(path, &c_path, awalan);
-    cipherTerminal(&c_path, awalan);
-    changePath(fpath, path);
+    setupPath(path, fpath, &c_path, awalan);
     printf("WARNING::Mknod path: %s\n", fpath);
 
     if (S_ISREG(mode)) {
@@ -456,10 +431,7 @@ static int xmp_rmdir(const char *path)
     char *c_path = NULL;
     char fpath[1000], awalan[9];
     int res;
-
-    getAwalan(path, &c_path, awalan);
-    cipherTerminal(&c_path, awalan);
-    changePath(fpath, path);
+    setupPath(path, fpath, &c_path, awalan);
     printf("WARNING::Rmdir path: %s\n", fpath);
 
     res = rmdir(fpath);
@@ -476,10 +448,7 @@ static int xmp_open(const char *path, struct fuse_file_info *fi)
     char *c_path = NULL;
     char fpath[1000], awalan[9];
     int res;
-
-    getAwalan(path, &c_path, awalan);
-    cipherTerminal(&c_path, awalan);
-    changePath(fpath, path);
+    setupPath(path, fpath, &c_path, awalan);
     printf("WARNING::Open path: %s\n", fpath);
 
     res = open(fpath, fi->flags);
@@ -499,14 +468,8 @@ static int xmp_symlink(const char *from, const char *to)
     char f_fpath[1000], f_awalan[9];
     char t_fpath[1000], t_awalan[9];
 	int res;
-
-    getAwalan(from, &fc_path, f_awalan);
-    cipherTerminal(&fc_path, f_awalan);
-    changePath(f_fpath, from);
-
-    getAwalan(to, &tc_path, t_awalan);
-    cipherTerminal(&tc_path, t_awalan);
-    changePath(t_fpath, to);
+    setupPath(from, f_fpath, &fc_path, f_awalan);
+    setupPath(to, t_fpath, &tc_path, t_awalan);
     printf("WARNING::Symlink path: %s --> %s\n", f_fpath, t_fpath);
 
 	res = symlink(f_fpath, t_fpath);
@@ -523,10 +486,7 @@ static int xmp_readlink(const char *path, char *buf, size_t size)
 	char *c_path = NULL;
     char fpath[1000], awalan[9];
     int res;
-
-    getAwalan(path, &c_path, awalan);
-    cipherTerminal(&c_path, awalan);
-    changePath(fpath, path);
+    setupPath(path, fpath, &c_path, awalan);
     printf("WARNING::Readlink path: %s\n", fpath);
 
 	res = readlink(fpath, buf, size - 1);
