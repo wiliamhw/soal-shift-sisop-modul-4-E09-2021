@@ -16,16 +16,13 @@ static const char *VIGENERE_KEY = "SISOP";
 
 /** Cipher Code **/
 // Encryption and Decryption atbash function
-void atBash(char input[])
+void atBash(char *input)
 {
-    char *text = strstr(input, "/AtoZ_");
-    if (text) {
-        text += strlen("/AtoZ_");
-        while (text[0] != '/') {
-            text++;
-        }
+    char *text = strstr(input, "/");
+    if (!text) {
+        text = input;
     } else {
-        text = &input[0];
+        text +=  1;
     }
 
     printf("In cipher: %s\n", text);
@@ -147,9 +144,15 @@ static int xmp_getattr(const char *path, struct stat *stbuf)
     Log("GETATTR", path, NULL);
 
     int res;
-    char fpath[1000], c_path[1000], awalan[9];
-    getAwalan(path, c_path, awalan);
-    if (strcmp(awalan, "AtoZ") == 0) {
+    char fpath[1000], awalan[9];
+    // char c_path[1000],
+    // getAwalan(path, c_path, awalan);
+    // if (strcmp(awalan, "AtoZ") == 0) {
+    //     atBash(c_path);
+    // }
+    char *c_path = strstr(path, "AtoZ_");
+    if (c_path) printf("%s\n", c_path);
+    if (c_path != NULL && strchr(c_path, '/') != NULL) {
         atBash(c_path);
     }
     sprintf(fpath, "%s%s", DIR_PATH, path);
@@ -167,9 +170,15 @@ static int xmp_readdir(const char *path, void *buf, fuse_fill_dir_t filler, off_
 {
     Log("READDIR", path, NULL);
 
-    char fpath[1000], c_path[1000], awalan[9];
-    getAwalan(path, c_path, awalan);
-    if (strcmp(awalan, "AtoZ") == 0) {
+    char fpath[1000], awalan[9];
+    // char c_path[1000];
+    // getAwalan(path, c_path, awalan);
+    // if (strcmp(awalan, "AtoZ") == 0) {
+    //     atBash(c_path);
+    // }
+    char *c_path = strstr(path, "AtoZ_");
+    if (c_path) printf("%s\n", c_path);
+    if (c_path != NULL && strchr(c_path, '/') != NULL) {
         atBash(c_path);
     }
     changePath(fpath, path);
@@ -195,7 +204,7 @@ static int xmp_readdir(const char *path, void *buf, fuse_fill_dir_t filler, off_
 
         // Encode filename
         if (strcmp(de->d_name, ".") != 0 && strcmp(de->d_name, "..") != 0) {
-            if (strcmp(awalan, "AtoZ") == 0) {
+            if (c_path != NULL) {
                 atBash(de->d_name);
             }
         }
