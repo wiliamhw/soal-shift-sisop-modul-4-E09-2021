@@ -114,28 +114,34 @@ void changePath(char *fpath, const char *path)
     } 
 }
 
-void getAwalan(const char *path, char *return_str, char *return_type)
+void getAwalan(const char *path, char **return_ptr, char *return_type)
 {
-    // Receive path as input (example: "AtoZ_folder/DATA_PEN.....")
-    // Return awalan (string before the first "_") as output (example: "AtoZ")
     char type[3][9] = {"/AtoZ_", "/RX_", "/A_is_a_"};
-    char *awalan = NULL;
+    *return_ptr = NULL;
 
     for (int i = 0; i < 3; i++) {
-        awalan = strstr(path, type[i]);
+        *return_ptr = strstr(path, type[i]);
 
-        if (awalan != NULL) {
-            printf("getAwalan: %s\n", type[i] + 1);
-            strcpy(return_str, awalan);
+        if (*return_ptr != NULL) {
+            *return_ptr += 1;
 
             type[i][strlen(type[i]) - 1] = '\0';
             strcpy(return_type, type[i] + 1);
             return;
         }
     }
-    printf("getAwalan: %s\n", path);
-    strcpy(return_str, path);
     strcpy(return_type, "empty");
+}
+
+void cipherTerminal(char **c_path, char *awalan) 
+{
+    if (*c_path && strchr(*c_path, '/') != NULL) {
+
+        printf("%s \t%s\n", *c_path, awalan);
+        if (strcmp(awalan, "AtoZ") == 0) {
+            atBash(*c_path);
+        }
+    }
 }
 
 /** XMP Method **/
@@ -144,17 +150,11 @@ static int xmp_getattr(const char *path, struct stat *stbuf)
     Log("GETATTR", path, NULL);
 
     int res;
+    char *c_path = NULL;
     char fpath[1000], awalan[9];
-    // char c_path[1000],
-    // getAwalan(path, c_path, awalan);
-    // if (strcmp(awalan, "AtoZ") == 0) {
-    //     atBash(c_path);
-    // }
-    char *c_path = strstr(path, "AtoZ_");
-    if (c_path) printf("%s\n", c_path);
-    if (c_path != NULL && strchr(c_path, '/') != NULL) {
-        atBash(c_path);
-    }
+
+    getAwalan(path, &c_path, awalan);
+    cipherTerminal(&c_path, awalan);
     sprintf(fpath, "%s%s", DIR_PATH, path);
     printf("WARNING::Getattr: %s\n", fpath);
 
@@ -170,17 +170,11 @@ static int xmp_readdir(const char *path, void *buf, fuse_fill_dir_t filler, off_
 {
     Log("READDIR", path, NULL);
 
+    char *c_path = NULL;
     char fpath[1000], awalan[9];
-    // char c_path[1000];
-    // getAwalan(path, c_path, awalan);
-    // if (strcmp(awalan, "AtoZ") == 0) {
-    //     atBash(c_path);
-    // }
-    char *c_path = strstr(path, "AtoZ_");
-    if (c_path) printf("%s\n", c_path);
-    if (c_path != NULL && strchr(c_path, '/') != NULL) {
-        atBash(c_path);
-    }
+    
+    getAwalan(path, &c_path, awalan);
+    cipherTerminal(&c_path, awalan);
     changePath(fpath, path);
     printf("WARNING::Readdir: %s\n", fpath);
 
