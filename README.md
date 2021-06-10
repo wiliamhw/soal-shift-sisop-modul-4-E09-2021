@@ -25,7 +25,7 @@
 3. Pada fungsi `readdir()`, encode semua nama file dari direktori dengan awalan `AtoZ_`.
 4. Pada fungsi `truncate()`, decode path saat ini setelah menjalankan fungsi `truncate()`.
 5. Pada fungsi `mkdir()`, decode path saaat ini setelah menjalankan fungsi `mkdir()`.
-6. Pada semua fungsi FUSE, ganti semua path dari parameter menjadi `<DIR_PATH> + <path saat ini yang sudah didecode>`.
+6. Pada semua fungsi Fuse, ganti semua path dari parameter menjadi `<DIR_PATH> + <path saat ini yang sudah didecode>`.
    1. Dapatkan awalan dari path saat ini.
    2. Decode path sesuai dengan awalan.
    3. Ganti path saat ini menjadi `<DIR_PATH> + <path saat ini yang sudah didecode>`.
@@ -40,7 +40,18 @@ void Log(const char *origin_path, const char *atoz_path)
     fclose(F_out);
 }
 ```
-sedangkan implementasi dari fungsi atBash() adalah sebagai berikut:
+Jika fungsi ini dijalankan, maka akan terbuat sebuat log file dengan isi:
+```
+/home/frain8/Downloads/testcase/soal3 -> /home/frain8/Downloads/testcase/AtoZ_soal3
+/home/frain8/Downloads/ss -> /home/frain8/Downloads/AtoZ_ss
+/home/frain8/Downloads/ss -> /home/frain8/Downloads/AtoZ_ss
+/home/frain8/Downloads/ss -> /home/frain8/Downloads/AtoZ_ss
+/home/frain8/Downloads/tes -> /home/frain8/Downloads/AtoZ_tes
+/home/frain8/Downloads/tes -> /home/frain8/Downloads/AtoZ_tes
+...
+```
+
+Implementasi dari fungsi atBash() adalah sebagai berikut:
 ```
 void atBash(char *input)
 {
@@ -93,13 +104,13 @@ void atBash(char *input)
 
 ## Penyelesaian Soal
 1. Catat path dari log file.
-2. Pastikan fungsi fuse untuk `mkdir` dan `unlink` sudah diimplementasikan.
+2. Pastikan fungsi Fuse untuk `mkdir` dan `unlink` sudah diimplementasikan.
 3. Buat fungsi `Log()` yang menerima tiga argumen, yaitu `CMD`, `DSC1`, `DSC2`.
    * Argument `CMD` harus berupa huruf kapital.
 4. Implementasikan fungsi `Log()` untuk menulis ke log file sesuai format dan argument yang ada.
    * Jika `CMD` sama dengan `mkdir` atau `unlink`, `level = "WARNING"`.
    * Selain itu, `level = "INFO"`.
-5. Jalankan fungsi `Log()` pada semua fungsi FUSE.
+5. Jalankan fungsi `Log()` pada semua fungsi Fuse.
 
 Implementasi dari langkah-langkah di atas adalah sebagai berikut:
 ```
@@ -132,6 +143,27 @@ void sysLog(const char *cmd, const char *desc, const char *desc2)
     fclose(F_out);
 }
 ```
+Jika fungsi ini dijalankan, maka akan terbuat `SinSeiFS.log` dengan isi:
+```
+...
+INFO::10052021-12:53:20:GETATTR::/
+INFO::10052021-12:53:20:READDIR::/
+INFO::10052021-12:53:21:GETATTR::/testcase
+INFO::10052021-12:53:21:READDIR::/testcase
+INFO::10052021-12:53:25:GETATTR::/testcase
+INFO::10052021-12:53:25:GETATTR::/testcase/ehe
+INFO::10052021-12:53:25:GETATTR::/testcase/ehe
+INFO::10052021-12:53:25:GETATTR::/testcase/ehe
+WARNING::10052021-12:53:25:MKDIR::/testcase/ehe
+INFO::10052021-12:53:25:GETATTR::/testcase/ehe
+INFO::10052021-12:53:25:READDIR::/testcase/ehe
+INFO::10052021-12:53:28:GETATTR::/testcase
+INFO::10052021-12:53:28:GETATTR::/testcase/ehe
+INFO::10052021-12:53:28:GETATTR::/
+...
+```
 
 # Kendala
+* Pada soal1, kami sempat kesulitan dalam menentukan tempat untuk melakukan encode dan decode pada path dari parameter.
+* Kami sempat mengalami kesulitan dalam menentukan dan mengimplementasikan fungsi Fuse agar fungsionalitas tertentu bisa berjalan.
 * Fungsi static tidak bisa menerima return value dari fungsi non-static. Kami pun memutuskan untuk mengirim data dari fungsi static ke fungsi non-static menggunakan argumen fungsi yang berupa pointer. Hal ini kami lakukan saat ingin mengirim data dari fungsi non-static menuji fungsi static.

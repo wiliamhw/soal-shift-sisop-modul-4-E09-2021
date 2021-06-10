@@ -370,9 +370,18 @@ static int xmp_rename(const char *from, const char *to)
 static int xmp_fsync(const char *path, int isdatasync,
 			 struct fuse_file_info *fi)
 {
-    /* Just a stub. This method is optional and can safely 
-    	be left unimplemented */
     sysLog("FSYNC", path, NULL);
+
+    (void) path;
+    (void) isdatasync;
+    (void) fi;
+    return 0;
+}
+
+static int xmp_fsyncdir(const char *path, int isdatasync,
+			 struct fuse_file_info *fi)
+{
+    sysLog("FSYNCDIR", path, NULL);
 
     (void) path;
     (void) isdatasync;
@@ -458,44 +467,6 @@ static int xmp_open(const char *path, struct fuse_file_info *fi)
     return 0;
 }
 
-static int xmp_symlink(const char *from, const char *to)
-{
-	sysLog("SYMLINK", from, to);
-
-    char *fc_path = NULL;
-    char *tc_path = NULL;
-    char f_fpath[1000], f_awalan[9];
-    char t_fpath[1000], t_awalan[9];
-	int res;
-    setupPath(from, f_fpath, &fc_path, f_awalan);
-    setupPath(to, t_fpath, &tc_path, t_awalan);
-    printf("WARNING::Symlink path: %s --> %s\n", f_fpath, t_fpath);
-
-	res = symlink(f_fpath, t_fpath);
-	if (res == -1)
-		return -errno;
-
-	return 0;
-}
-
-static int xmp_readlink(const char *path, char *buf, size_t size)
-{
-	sysLog("READLINK", path, NULL);
-
-	char *c_path = NULL;
-    char fpath[1000], awalan[9];
-    int res;
-    setupPath(path, fpath, &c_path, awalan);
-    printf("WARNING::Readlink path: %s\n", fpath);
-
-	res = readlink(fpath, buf, size - 1);
-	if (res == -1)
-		return -errno;
-
-	buf[res] = '\0';
-	return 0;
-}
-
 static struct fuse_operations xmp_oper = {
     .getattr = xmp_getattr,
     .readdir = xmp_readdir,
@@ -506,12 +477,11 @@ static struct fuse_operations xmp_oper = {
     .unlink = xmp_unlink,
     .rename = xmp_rename,
     .fsync = xmp_fsync,
+    .fsyncdir = xmp_fsyncdir,
     .access = xmp_access,
     .mknod = xmp_mknod,
     .rmdir = xmp_rmdir,
     .open = xmp_open,
-    .symlink = xmp_symlink,
-    .readlink = xmp_readlink
 };
 
 int main(int argc, char *argv[])
