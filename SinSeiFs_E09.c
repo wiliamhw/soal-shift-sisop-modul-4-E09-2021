@@ -309,13 +309,12 @@ static int xmp_mkdir(const char *path, mode_t mode)
 
     char *folder_name = strrchr(fpath, '/');
     printf("INFO::MKDIR: %s\n", folder_name);
-    if (strstr(folder_name, "/AtoZ_") != NULL) {
+    if (strcmp(awalan, "empty") != 0) {
         char origin_path[1000];
         strcpy(origin_path, fpath);
         origin_path[strlen(origin_path) - strlen(folder_name)] = '\0';
         Log(origin_path, fpath);
     }
-
 
     if (res == -1)
 		return -errno;
@@ -358,7 +357,7 @@ static int xmp_rename(const char *from, const char *to)
 
     char *new_name = strrchr(t_fpath, '/');
     printf("INFO::To path: %s\n", new_name);
-    if (strstr(new_name, "/AtoZ_") != NULL) {
+    if (strcmp(t_awalan, "empty") != 0) {
         Log(f_fpath, t_fpath);
     }
 

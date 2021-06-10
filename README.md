@@ -8,14 +8,67 @@
 <br><br>
 
 # Soal 1
-## Subsoal a
 ### Penjelasan Soal
-* Jika direktori bernama `AtoZ_`, maka direktori tersebut akan menjadi direktori ter-encode.
+* Cipher yang digunakan dalam soal ini adalah Atbash Cipher.
+* Jika direktori bernama `AtoZ_` atau di-rename dengan awalan `AtoZ_`, maka direktori tersebut akan menjadi direktori ter-encode.
+* Jika direktori yang terenkripsi di-rename menjadi tidak ter-encode, isi direktori tersebut juga akan terdecode.
+* Setiap pembuatan direktori ter-encode (`mkdir` atau `rename`) akan tercatat ke sebuah log.
+  * Format: `/home/<USER>/Downloads/<Nama Direktori> → /home/<USER>/Downloads/AtoZ_<Nama Direktori>`.
 * Ekstensi tidak diencode.
+* Metode encode berlaku rekursif.
 
-## Subsoal b
-### Penjelasan Soal
-* Jika direktori di-rename dengan awalan `AtoZ_`, maka direktori tersebut akan menjadi direktori ter-encode.
+### Penyelesaian Soal
+1. Buat fungsi `Log()` dengan parameter alamat awal dan alamat baru.
+   * Fungsi ini akan mencatat perubahan nama suatu direktori di di file bernama `SISOP.log`.
+   * Format: `/home/<USER>/Downloads/<Nama Direktori> → /home/<USER>/Downloads/AtoZ_<Nama Direktori>`.
+2. Buat fungsi `atBash()` untuk melakukan encode dan decode pada suatu string input.
+3. Pada fungsi `readdir()`, encode semua nama file dari direktori dengan awalan `AtoZ_`.
+4. Pada fungsi `truncate()`, decode path saat ini setelah menjalankan fungsi `truncate()`.
+5. Pada fungsi `mkdir()`, decode path saaat ini setelah menjalankan fungsi `mkdir()`.
+6. Pada semua fungsi FUSE, ganti semua path dari parameter menjadi `<DIR_PATH> + <path saat ini yang sudah didecode>`.
+   1. Dapatkan awalan dari path saat ini.
+   2. Decode path sesuai dengan awalan.
+   3. Ganti path saat ini menjadi `<DIR_PATH> + <path saat ini yang sudah didecode>`.
+7. Pada fungsi `mkdir()` dan `rename()`, jika awalan berupa `AtoZ_`, catat path sumber dan path destinasi dengan fungsi `Log()`.
+
+Implementasi fungsi `Log()` ada sebagai berikut:
+```
+void Log(const char *origin_path, const char *atoz_path)
+{
+    FILE *F_out = fopen(LOG_PATH, "a+");
+    fprintf(F_out, "%s -> %s\n", origin_path, atoz_path);
+    fclose(F_out);
+}
+```
+sedangkan implementasi dari fungsi atBash() adalah sebagai berikut:
+```
+void atBash(char *input)
+{
+    char *text = strstr(input, "/");
+    if (!text) {
+        text = input;
+    } else {
+        text +=  1;
+    }
+
+    printf("In cipher: %s\n", text);
+    int i = 0;
+    while (text[i] != '\0') {
+        if (isalpha(text[i])) {
+            if (isupper(text[i])) {
+                text[i] = 'Z' + 'A' - text[i];
+            } else {
+                text[i] = 'z' + 'a' - text[i];
+            }
+        } else if (text[i] == '.') {
+            break;
+        }
+        i++;
+    }
+    printf("Out cipher: %s\n", text);
+}
+```
+
 
 # Soal 2
 <br><br>
@@ -46,11 +99,11 @@
 4. Implementasikan fungsi `Log()` untuk menulis ke log file sesuai format dan argument yang ada.
    * Jika `CMD` sama dengan `mkdir` atau `unlink`, `level = "WARNING"`.
    * Selain itu, `level = "INFO"`.
-5. Jalankan fungsi `Log()` pada semua fungsi fuse.
+5. Jalankan fungsi `Log()` pada semua fungsi FUSE.
 
 Implementasi dari langkah-langkah di atas adalah sebagai berikut:
 ```
-void Log(const char *cmd, const char *desc, const char *desc2)
+void sysLog(const char *cmd, const char *desc, const char *desc2)
 {
     char *level = (strcmp(cmd, "MKDIR") == 0 
                 || strcmp(cmd, "UNLINK") == 0) 
@@ -74,11 +127,11 @@ void Log(const char *cmd, const char *desc, const char *desc2)
         strcat(output, desc2);
     }
 
-    FILE *F_out = fopen(LOG_PATH, "a+");
+    FILE *F_out = fopen(SYS_LOG_PATH, "a+");
     fprintf(F_out, "%s\n", output);
     fclose(F_out);
 }
 ```
 
 # Kendala
-* Fungsi static tidak bisa menerima return value dari fungsi non-static. Kami pun memutuskan untuk mengirim data dari fungsi static ke fungsi non-static menggunakan argumen fungsi yang berupa pointer.
+* Fungsi static tidak bisa menerima return value dari fungsi non-static. Kami pun memutuskan untuk mengirim data dari fungsi static ke fungsi non-static menggunakan argumen fungsi yang berupa pointer. Hal ini kami lakukan saat ingin mengirim data dari fungsi non-static menuji fungsi static.
