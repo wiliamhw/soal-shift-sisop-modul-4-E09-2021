@@ -40,16 +40,8 @@ void Log(const char *origin_path, const char *atoz_path)
     fclose(F_out);
 }
 ```
-Jika fungsi ini dijalankan, maka akan terbuat sebuat log file dengan isi:
-```
-/home/frain8/Downloads/testcase/soal3 -> /home/frain8/Downloads/testcase/AtoZ_soal3
-/home/frain8/Downloads/ss -> /home/frain8/Downloads/AtoZ_ss
-/home/frain8/Downloads/ss -> /home/frain8/Downloads/AtoZ_ss
-/home/frain8/Downloads/ss -> /home/frain8/Downloads/AtoZ_ss
-/home/frain8/Downloads/tes -> /home/frain8/Downloads/AtoZ_tes
-/home/frain8/Downloads/tes -> /home/frain8/Downloads/AtoZ_tes
-...
-```
+Jika fungsi ini dijalankan, maka akan terbuat sebuat log file dengan isi:  
+![Isi log soal1](https://res.cloudinary.com/dx3jourdf/image/upload/v1623306920/Isi_log_soal_1.png)
 
 Implementasi dari fungsi atBash() adalah sebagai berikut:
 ```
@@ -143,25 +135,9 @@ void sysLog(const char *cmd, const char *desc, const char *desc2)
     fclose(F_out);
 }
 ```
-Jika fungsi ini dijalankan, maka akan terbuat `SinSeiFS.log` dengan isi:
-```
-...
-INFO::10052021-12:53:20:GETATTR::/
-INFO::10052021-12:53:20:READDIR::/
-INFO::10052021-12:53:21:GETATTR::/testcase
-INFO::10052021-12:53:21:READDIR::/testcase
-INFO::10052021-12:53:25:GETATTR::/testcase
-INFO::10052021-12:53:25:GETATTR::/testcase/ehe
-INFO::10052021-12:53:25:GETATTR::/testcase/ehe
-INFO::10052021-12:53:25:GETATTR::/testcase/ehe
-WARNING::10052021-12:53:25:MKDIR::/testcase/ehe
-INFO::10052021-12:53:25:GETATTR::/testcase/ehe
-INFO::10052021-12:53:25:READDIR::/testcase/ehe
-INFO::10052021-12:53:28:GETATTR::/testcase
-INFO::10052021-12:53:28:GETATTR::/testcase/ehe
-INFO::10052021-12:53:28:GETATTR::/
-...
-```
+Jika fungsi ini dijalankan, maka akan terbuat `SinSeiFS.log` dengan isi:  
+![Isi SinSeiFS.log](https://res.cloudinary.com/dx3jourdf/image/upload/v1623306923/Isi_SinseiFS.log.png)
+<br><br>
 
 # Kendala
 * Pada soal1, kami sempat kesulitan dalam menentukan tempat untuk melakukan encode dan decode pada path dari parameter.
