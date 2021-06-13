@@ -4,7 +4,7 @@
 * 05111940000212 - Fadhil Dimas Sucahyo
 
 # Info
-* Tidak diperkenankan menggunakan system() dan exec*(), kecuali ada pengecualian di butir soal.
+* Tidak diperkenankan menggunakan `system()` dan `exec()`, kecuali ada pengecualian di butir soal.
 <br><br>
 
 # Soal 1
